@@ -1,6 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
@@ -8,180 +9,209 @@ import 'package:shopperz/app/apiServices/common_widget.dart';
 import 'package:shopperz/model/responseapi.dart';
 import 'package:shopperz/utils/api_list.dart';
 
-Map<String, String> getHeaders() {
-  Map<String, String> header = {};
-  // if (AppConstants.authToken != "") {
-  //   header["Authorization"] = 'Bearer ${AppConstants.authToken}';
-  // }
-  header["Content-Type"] = "application/json";
-  return header;
+final Logger _logger = Logger(
+  printer: PrettyPrinter(methodCount: 0),
+);
+
+Map<String, String> getHeaders({bool isJson = true}) {
+  return isJson
+      ? {
+          "Content-Type": "application/json",
+        }
+      : {};
 }
 
-postAPI({required String methodName, required Map<String, dynamic> param, required Function(ResponseAPI) callback}) async {
-  var connectivityResult = await (Connectivity().checkConnectivity());
-  if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
-    String url = ApiList.baseUrl + methodName;
-    Uri uri = Uri.parse(url);
-    log("==request== $uri");
-    log("==params== $param");
-    await http.post(uri, headers: getHeaders(), body: param).then((value) {
-      _handleResponse(value, callback);
-    }).onError((error, stackTrace) {
-      log("onError== $error");
-      throw _handleError(error, callback);
-    }).catchError((error) {
-      log("catchError== $error");
-      _handleError(error, callback);
-    });
-  } else {
-    toast("No Internet");
-    callback.call(ResponseAPI(
-      0,
-      "No Internet",
-      isError: true,
-    ));
+/// =======================
+/// POST API (JSON)
+/// =======================
+Future<void> postAPI({
+  required String methodName,
+  required Map<String, dynamic> param,
+  required Function(ResponseAPI) callback,
+}) async {
+  final String url = ApiList.baseUrl + methodName;
+  final Uri uri = Uri.parse(url);
+
+  log("==REQUEST== $uri");
+  log("==PARAMS== $param");
+
+  try {
+    final response = await http
+        .post(
+          uri,
+          headers: getHeaders(isJson: true),
+          body: jsonEncode(param),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    _handleResponse(response, callback);
+  } on TimeoutException {
+    _handleNetworkError("Request Timeout", callback);
+  } catch (e) {
+    _handleNetworkError(e.toString(), callback);
   }
 }
 
-postAPIWithoutToken({required String methodName, required Map<String, dynamic> param, required Function(ResponseAPI) callback}) async {
-  var connectivityResult = await (Connectivity().checkConnectivity());
-  if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
-    String url = ApiList.baseUrl + methodName;
-    Uri uri = Uri.parse(url);
-    log("==request== $uri");
-    log("==params== $param");
-    await http.post(uri, body: param).then((value) {
-      _handleResponse(value, callback);
-    }).onError((error, stackTrace) {
-      log("onError== $error");
-      throw _handleError(error, callback);
-    }).catchError((error) {
-      log("catchError== $error");
-      _handleError(error, callback);
-    });
-  } else {
-    toast("No Internet");
-    callback.call(ResponseAPI(
-      0,
-      "No Internet",
-      isError: true,
-    ));
+/// =======================
+/// POST API (Form Data)
+/// =======================
+Future<void> postAPIWithoutToken({
+  required String methodName,
+  required Map<String, dynamic> param,
+  required Function(ResponseAPI) callback,
+}) async {
+  final String url = ApiList.baseUrl + methodName;
+  final Uri uri = Uri.parse(url);
+
+  log("==REQUEST== $uri");
+  log("==PARAMS== $param");
+
+  try {
+    final response = await http
+        .post(
+          uri,
+          body: param,
+        )
+        .timeout(const Duration(seconds: 20));
+
+    _handleResponse(response, callback);
+  } on TimeoutException {
+    _handleNetworkError("Request Timeout", callback);
+  } catch (e) {
+    _handleNetworkError(e.toString(), callback);
   }
 }
 
-getAPI({required String methodName, required Function(ResponseAPI) callback,required Map<String, dynamic> param}) async {
-  var connectivityResult = await (Connectivity().checkConnectivity());
-  if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
-    String url = ApiList.baseUrl + methodName;
-    Uri uri = Uri.parse(url);
-    uri = uri.replace(queryParameters: param); // Add parameters to the URI
-    log("==request== $uri");
-    await http.get(uri, headers: getHeaders()).then((value) {
-      _handleResponse(value, callback);
-    }).onError((error, stackTrace) {
-      log("onError== $error");
-      _handleError(error, callback);
-    }).catchError((error) {
-      log("catchError== $error");
-      _handleError(error, callback);
-    });
-  } else {
-    toast("No Internet");
-    callback.call(ResponseAPI(
-      0,
-      "No Internet",
-      isError: true,
-    ));
-  }
-}
+/// =======================
+/// GET API
+/// =======================
+Future<void> getAPI({
+  required String methodName,
+  required Map<String, dynamic> param,
+  required Function(ResponseAPI) callback,
+}) async {
+  final String url = ApiList.baseUrl + methodName;
+  Uri uri = Uri.parse(url).replace(queryParameters: param);
 
-getMapAPI({required String methodName, required Function(ResponseAPI) callback}) async {
-  var connectivityResult = await (Connectivity().checkConnectivity());
-  if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
-    String url = methodName;
-    Uri uri = Uri.parse(url);
-    log("==request== $uri");
-    await http
+  log("==REQUEST== $uri");
+
+  try {
+    final response = await http
         .get(
-      uri,
-    )
-        .then((value) {
-      _handleResponse(value, callback);
-    }).onError((error, stackTrace) {
-      log("onError== $error");
-      _handleError(error, callback);
-    }).catchError((error) {
-      log("catchError== $error");
-      _handleError(error, callback);
-    });
-  } else {
-    toast("No Internet");
-    callback.call(ResponseAPI(
-      0,
-      "No Internet",
-      isError: true,
-    ));
+          uri,
+          headers: getHeaders(isJson: false),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    _handleResponse(response, callback);
+  } on TimeoutException {
+    _handleNetworkError("Request Timeout", callback);
+  } catch (e) {
+    _handleNetworkError(e.toString(), callback);
   }
 }
 
-multipartPostAPI({
+/// =======================
+/// GET MAP API
+/// =======================
+Future<void> getMapAPI({
+  required String methodName,
+  required Function(ResponseAPI) callback,
+}) async {
+  final Uri uri = Uri.parse(methodName);
+
+  log("==REQUEST== $uri");
+
+  try {
+    final response =
+        await http.get(uri).timeout(const Duration(seconds: 20));
+
+    _handleResponse(response, callback);
+  } on TimeoutException {
+    _handleNetworkError("Request Timeout", callback);
+  } catch (e) {
+    _handleNetworkError(e.toString(), callback);
+  }
+}
+
+/// =======================
+/// MULTIPART POST API
+/// =======================
+Future<void> multipartPostAPI({
   required String methodName,
   required Map<String, String> param,
   required Function(ResponseAPI) callback,
   required List<XFile> photo,
   required String photoName,
 }) async {
-  var url = ApiList.baseUrl + methodName;
-  var uri = Uri.parse(url);
-  log("==request== $uri");
-  log("==Params== $param");
+  final String url = ApiList.baseUrl + methodName;
+  final Uri uri = Uri.parse(url);
+
+  log("==REQUEST== $uri");
+  log("==PARAMS== $param");
+
   try {
-    final imageUploadRequest = http.MultipartRequest('POST', uri);
-    List<http.MultipartFile> file = [];
+    final request = http.MultipartRequest('POST', uri);
+
     for (int i = 0; i < photo.length; i++) {
-      file.add(await http.MultipartFile.fromPath(
-        photoName,
-        photo[i].path,
-        filename: photo[i].path,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          photoName,
+          photo[i].path,
+        ),
+      );
     }
-    imageUploadRequest.files.addAll(file);
-    log("==photo== $photo");
-    imageUploadRequest.fields.addAll(param);
-    imageUploadRequest.headers.addAll(getHeaders());
-    final streamedResponse = await imageUploadRequest.send();
-    await http.Response.fromStream(streamedResponse).then((value) {
-      _handleResponse(value, callback);
-    }).onError((error, stackTrace) {
-      _handleError(error, callback);
-    }).catchError((error) {
-      log("catchError== $error");
-      _handleError(error, callback);
-    });
+
+    request.fields.addAll(param);
+
+    final streamedResponse =
+        await request.send().timeout(const Duration(seconds: 30));
+
+    final response =
+        await http.Response.fromStream(streamedResponse);
+
+    _handleResponse(response, callback);
+  } on TimeoutException {
+    _handleNetworkError("Upload Timeout", callback);
   } catch (e) {
-    _handleError(e, callback);
-    // return null;
+    _handleNetworkError(e.toString(), callback);
   }
 }
 
-_handleResponse(http.Response value, Function(ResponseAPI) callback) {
-  var logger = Logger(
-    level: Level.info,
-    printer: PrettyPrinter(methodCount: 0, noBoxingByDefault: false),
-  );
-  logger.i("==response== ${value.body}");
-  callback.call(ResponseAPI(value.statusCode, value.body));
+/// =======================
+/// HANDLE RESPONSE
+/// =======================
+void _handleResponse(
+    http.Response response, Function(ResponseAPI) callback) {
+  _logger.i("==STATUS== ${response.statusCode}");
+  _logger.i("==BODY== ${response.body}");
+
+  if (response.statusCode >= 200 &&
+      response.statusCode < 300) {
+    callback(ResponseAPI(response.statusCode, response.body));
+  } else {
+    callback(ResponseAPI(
+      response.statusCode,
+      "Server Error",
+      isError: true,
+      error: null,
+    ));
+  }
 }
 
-_handleError(value, Function(ResponseAPI) callback) {
-  var logger = Logger(
-    level: Level.error,
-  );
-  logger.e("error:::::::::::::: ${value.body}");
-  callback.call(ResponseAPI(
+/// =======================
+/// HANDLE NETWORK ERROR
+/// =======================
+void _handleNetworkError(
+    String message, Function(ResponseAPI) callback) {
+  _logger.e("NETWORK ERROR: $message");
+
+  toast("Network Error");
+
+  callback(ResponseAPI(
     0,
-    "Something went wrong",
+    message,
     isError: true,
-    error: value,
+    error: null,
   ));
 }

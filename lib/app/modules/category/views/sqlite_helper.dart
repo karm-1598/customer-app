@@ -4,7 +4,6 @@ import 'package:path/path.dart' as p;
 import 'package:shopperz/app/apiServices/common_widget.dart';
 import 'package:shopperz/model/brands_manufacturer_list_model.dart';
 import 'package:shopperz/model/home_associate_brand_model.dart';
-import 'package:shopperz/model/product_interested_list_model.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../../model/category_list_model.dart';

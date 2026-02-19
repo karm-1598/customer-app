@@ -299,8 +299,11 @@ class _ReviewViewState extends State<ReviewView> {
                     Row(
                       children: [
                         RatingBarIndicator(
-                          rating: double.parse(
-                              '${productDetailsController.productModel.value.data!.ratingStar.toString() == 'null' ? '0' : double.parse(productDetailsController.productModel.value.data!.ratingStar.toString()) / productDetailsController.productModel.value.data!.ratingStarCount!.toInt()}'),
+                          rating: () {
+                            final star = double.tryParse(productDetailsController.productModel.value.data?.ratingStar?.toString() ?? '0') ?? 0.0;
+                            final count = productDetailsController.productModel.value.data?.ratingStarCount ?? 0;
+                            return count > 0 ? star / count : 0.0;
+                          }(),
                           itemSize: 10.h,
                           itemBuilder: (context, index) => Container(
                             margin: EdgeInsets.symmetric(horizontal: 1.w),
@@ -369,15 +372,7 @@ class _ReviewViewState extends State<ReviewView> {
                                             height: 10.h,
                                           ),
                                           RatingBarIndicator(
-                                            rating: double.parse(
-                                                productDetailsController
-                                                        .productModel
-                                                        .value
-                                                        .data!
-                                                        .reviews?[index]
-                                                        .star
-                                                        .toString() ??
-                                                    "0"),
+                                            rating: double.tryParse(productDetailsController.productModel.value.data?.reviews?[index].star?.toString() ?? "0") ?? 0.0,
                                             itemSize: 10.h,
                                             itemBuilder: (context, index) =>
                                                 Container(

@@ -9,7 +9,7 @@ InitialVariationModel initialVariationModelFromJson(String str) => InitialVariat
 String initialVariationModelToJson(InitialVariationModel data) => json.encode(data.toJson());
 
 class InitialVariationModel {
-    final List<Datum>? data;
+    List<Datum>? data;
 
     InitialVariationModel({
         this.data,

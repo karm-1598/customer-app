@@ -19,75 +19,120 @@ import 'package:shopperz/widgets/textwidget.dart';
 class PaymentView extends StatefulWidget {
   final int? orderId;
   final String? slug;
-  const PaymentView({super.key, this.orderId,this.slug});
+  
+  const PaymentView({super.key, this.orderId, this.slug});
+
   @override
-  _PaymentViewState createState() => _PaymentViewState();
+  State<PaymentView> createState() => _PaymentViewState();
 }
 
 class _PaymentViewState extends State<PaymentView> {
   String? selectedUrl;
-  double value = 0.0;
   bool isLoading = true;
-  PullToRefreshController pullToRefreshController = PullToRefreshController();
+  PullToRefreshController? pullToRefreshController;
   MyInAppBrowser? browser;
 
   @override
   void initState() {
     super.initState();
-    selectedUrl = ApiList.baseUrl + "/payment/" + widget.slug.toString() + "/pay/" + widget.orderId.toString();
-    _initData();
+    if (widget.slug != null && widget.orderId != null) {
+      selectedUrl = "${ApiList.baseUrl}/payment/${widget.slug}/pay/${widget.orderId}";
+      _initData();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        customSnackbar("ERROR".tr, "Invalid payment details".tr, AppColor.error);
+        Get.back();
+      });
+    }
   }
 
   void _initData() async {
-    browser = MyInAppBrowser();
-    if (Platform.isAndroid) {
-      await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
+    try {
+      browser = MyInAppBrowser(
+        onLoadingChanged: (loading) {
+          if (mounted) {
+            setState(() {
+              isLoading = loading;
+            });
+          }
+        },
+      );
 
-      bool swAvailable = await AndroidWebViewFeature.isFeatureSupported(
-          AndroidWebViewFeature.SERVICE_WORKER_BASIC_USAGE);
-      bool swInterceptAvailable =
-          await AndroidWebViewFeature.isFeatureSupported(
-              AndroidWebViewFeature.SERVICE_WORKER_SHOULD_INTERCEPT_REQUEST);
+      if (Platform.isAndroid) {
+        await InAppWebViewController.setWebContentsDebuggingEnabled(true);
+        
+        bool swAvailable = await WebViewFeature.isFeatureSupported(
+            WebViewFeature.SERVICE_WORKER_BASIC_USAGE);
+        bool swInterceptAvailable = await WebViewFeature.isFeatureSupported(
+            WebViewFeature.SERVICE_WORKER_SHOULD_INTERCEPT_REQUEST);
 
-      if (swAvailable && swInterceptAvailable) {
-        AndroidServiceWorkerController serviceWorkerController =
-            AndroidServiceWorkerController.instance();
-        await serviceWorkerController
-            .setServiceWorkerClient(AndroidServiceWorkerClient(
-          shouldInterceptRequest: (request) async {
-            return null;
-          },
-        ));
+        if (swAvailable && swInterceptAvailable) {
+          ServiceWorkerController serviceWorkerController =
+              ServiceWorkerController.instance();
+          await serviceWorkerController.setServiceWorkerClient(ServiceWorkerClient(
+            shouldInterceptRequest: (request) async {
+              return null;
+            },
+          ));
+        }
+      }
+
+      pullToRefreshController = PullToRefreshController(
+        settings: PullToRefreshSettings(
+          color: AppColor.primaryColor,
+        ),
+        onRefresh: () async {
+          if (Platform.isAndroid) {
+            await browser?.webViewController?.reload();
+          } else if (Platform.isIOS) {
+            final url = await browser?.webViewController?.getUrl();
+            if (url != null) {
+              await browser?.webViewController?.loadUrl(
+                urlRequest: URLRequest(url: url),
+              );
+            }
+          }
+        },
+      );
+
+      if (browser != null) {
+        browser!.pullToRefreshController = pullToRefreshController;
+      }
+
+      await browser?.openUrlRequest(
+        urlRequest: URLRequest(url: WebUri(selectedUrl!)),
+        settings: InAppBrowserClassSettings(
+          browserSettings: InAppBrowserSettings(
+            hideUrlBar: true,
+            hideToolbarTop: true,
+            toolbarTopBackgroundColor: AppColor.primaryColor,
+          ),
+          webViewSettings: InAppWebViewSettings(
+            useShouldOverrideUrlLoading: true,
+            useOnLoadResource: true,
+            javaScriptEnabled: true,
+            domStorageEnabled: true,
+            clearCache: false,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+        customSnackbar("ERROR".tr, "Failed to load payment page".tr, AppColor.error);
+        Get.back();
       }
     }
+  }
 
-    pullToRefreshController = PullToRefreshController(
-      options: PullToRefreshOptions(
-        color: AppColor.primaryColor,
-      ),
-      onRefresh: () async {
-        if (Platform.isAndroid) {
-          browser?.webViewController.reload();
-        } else if (Platform.isIOS) {
-          browser?.webViewController.loadUrl(
-              urlRequest:
-                  URLRequest(url: await browser?.webViewController.getUrl()));
-        }
-      },
-    );
-    browser?.pullToRefreshController = pullToRefreshController;
-
-    await browser?.openUrlRequest(
-      urlRequest: URLRequest(url: Uri.parse(selectedUrl!)),
-      options: InAppBrowserClassOptions(
-        crossPlatform:
-            InAppBrowserOptions(hideUrlBar: true, hideToolbarTop: true),
-        inAppWebViewGroupOptions: InAppWebViewGroupOptions(
-          crossPlatform: InAppWebViewOptions(
-              useShouldOverrideUrlLoading: true, useOnLoadResource: true),
-        ),
-      ),
-    );
+  @override
+  void dispose() {
+    browser?.close();
+    browser = null;
+    pullToRefreshController = null;
+    super.dispose();
   }
 
   @override
@@ -103,18 +148,18 @@ class _PaymentViewState extends State<PaymentView> {
       child: Scaffold(
         backgroundColor: AppColor.whiteColor,
         body: Center(
-          child: Container(
-            child: Stack(
-              children: [
-                isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColor.primaryColor)),
-                      )
-                    : const SizedBox.shrink(),
-              ],
-            ),
+          child: Stack(
+            children: [
+              if (isLoading)
+                Container(
+                  color: AppColor.whiteColor,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(AppColor.primaryColor),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -124,172 +169,210 @@ class _PaymentViewState extends State<PaymentView> {
 
 class MyInAppBrowser extends InAppBrowser {
   bool _canRedirect = true;
+  final Function(bool)? onLoadingChanged;
+  PullToRefreshController? pullToRefreshController;
+
+  MyInAppBrowser({this.onLoadingChanged});
 
   @override
-  Future onBrowserCreated() async {}
+  Future onBrowserCreated() async {
+    debugPrint("Browser Created!");
+  }
 
   @override
   Future onLoadStart(url) async {
+    onLoadingChanged?.call(true);
     _pageRedirect(url.toString());
   }
 
   @override
   Future onLoadStop(url) async {
     pullToRefreshController?.endRefreshing();
+    onLoadingChanged?.call(false);
     _pageRedirect(url.toString());
   }
 
   @override
   void onLoadError(url, code, message) {
     pullToRefreshController?.endRefreshing();
+    onLoadingChanged?.call(false);
+    debugPrint("Load Error: $message");
   }
 
   @override
   void onProgressChanged(progress) {
     if (progress == 100) {
       pullToRefreshController?.endRefreshing();
+      onLoadingChanged?.call(false);
     }
   }
 
   @override
   void onExit() {
     if (_canRedirect) {
-      showDialog(
-        context: Get.context!,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return WillPopScope(
-            onWillPop: () async => false,
-            child: AlertDialog(
-              contentPadding: EdgeInsets.all(10.r),
-              content: const PaymentFailedView(),
-            ),
+      _canRedirect = false;
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (Get.context != null) {
+          showDialog(
+            context: Get.context!,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return PopScope(
+                canPop: false,
+                child: AlertDialog(
+                  contentPadding: EdgeInsets.all(10.r),
+                  content: const PaymentFailedView(),
+                ),
+              );
+            },
           );
-        },
-      );
+        }
+      });
     }
   }
 
   @override
-  Future<NavigationActionPolicy> shouldOverrideUrlLoading(
-      navigationAction) async {
+  Future<NavigationActionPolicy>? shouldOverrideUrlLoading(
+      NavigationAction navigationAction) async {
     return NavigationActionPolicy.ALLOW;
   }
 
   @override
-  void onLoadResource(response) {
+  void onLoadResource(LoadedResource resource) {
+    debugPrint("Resource loaded: ${resource.url}");
   }
 
   @override
-  void onConsoleMessage(consoleMessage) {}
+  void onConsoleMessage(ConsoleMessage consoleMessage) {
+    debugPrint("Console: ${consoleMessage.message}");
+  }
 
   void _pageRedirect(String url) async {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (_canRedirect) {
-        bool isSuccess =
-            url.contains('success') && url.contains(ApiList.baseUrl);
-        bool isFailed = url.contains('fail') && url.contains(ApiList.baseUrl);
-        bool isCancel =
-            url.contains('cancel') && url.contains(ApiList.baseUrl);
-        bool isBack = url.contains('checkout/payment') && url.contains(ApiList.baseUrl);
-        if (isSuccess || isFailed || isCancel || isBack) {
-          _canRedirect = false;
-          close();
-        }
-        if (isSuccess) {
-          _canRedirect = false;
-          close();
-          Get.back();
+    if (!_canRedirect) return;
 
-          Get.dialog(
-            barrierDismissible: false,
-            Dialog(
-              insetPadding: EdgeInsets.all(10.r),
-              backgroundColor: Colors.transparent,
-              child: Stack(
-                children: [
-                  Container(
-                    height: 318.h,
-                    width: 328.w,
-                    decoration: BoxDecoration(
-                        color: AppColor.whiteColor,
-                        borderRadius: BorderRadius.circular(16.r)),
-                    child: Padding(
-                      padding: EdgeInsets.all(16.r),
-                      child: Column(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment:
-                            CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            height: 16.h,
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!_canRedirect) return;
+
+    bool isSuccess = url.contains('success') && url.contains(ApiList.baseUrl);
+    bool isFailed = url.contains('fail') && url.contains(ApiList.baseUrl);
+    bool isCancel = url.contains('cancel') && url.contains(ApiList.baseUrl);
+    bool isBack = url.contains('checkout/payment') && url.contains(ApiList.baseUrl);
+
+    if (isSuccess || isFailed || isCancel || isBack) {
+      _canRedirect = false;
+      await close();
+
+      if (isSuccess) {
+        _handleSuccessPayment();
+      } else if (isFailed || isCancel || isBack) {
+        _handleFailedPayment();
+      }
+    }
+  }
+
+  void _handleSuccessPayment() {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (Get.context != null) {
+        Get.back();
+        Get.dialog(
+          barrierDismissible: false,
+          Dialog(
+            insetPadding: EdgeInsets.all(10.r),
+            backgroundColor: Colors.transparent,
+            child: Stack(
+              children: [
+                Container(
+                  height: 318.h,
+                  width: 328.w,
+                  decoration: BoxDecoration(
+                    color: AppColor.whiteColor,
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(16.r),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(height: 16.h),
+                        TextWidget(
+                          text: 'Thank you for your order!'.tr,
+                          color: AppColor.textColor,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        SizedBox(height: 20.h),
+                        Image.asset(
+                          AppImages.oderConfirm,
+                          height: 120.h,
+                          width: 120.w,
+                        ),
+                        SizedBox(height: 20.h),
+                        TextWidget(
+                          text: 'Your order is confirmed.'.tr,
+                          color: AppColor.textColor,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        SizedBox(height: 16.h),
+                        InkWell(
+                          onTap: () {
+                            Get.back();
+                            Get.off(() => const OrderHistoryScreen());
+                          },
+                          child: PrimaryButton(
+                            text: 'Go to order details'.tr,
                           ),
-                          TextWidget(
-                            text: 'Thank you for your order!'.tr,
-                            color: AppColor.textColor,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          SizedBox(
-                            height: 20.h,
-                          ),
-                          Image.asset(
-                            AppImages.oderConfirm,
-                            height: 120.h,
-                            width: 120.w,
-                          ),
-                          SizedBox(
-                            height: 20.h,
-                          ),
-                          TextWidget(
-                            text: 'Your order is confirmed.'.tr,
-                            color: AppColor.textColor,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          SizedBox(
-                            height: 16.h,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              Get.off(()=> OrderHistoryScreen());
-                            },
-                            child: PrimaryButton(
-                                text: 'Go to order details'.tr),
-                          )
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  Positioned(
-                    top: 16.h,
-                    right: 16.w,
-                    child: InkWell(
-                      onTap: () {
-                        Get.back();
-                      },
-                      child: SvgPicture.asset(
-                        SvgIcon.close,
-                        height: 24.h,
-                        width: 24.w,
-                      ),
+                ),
+                Positioned(
+                  top: 16.h,
+                  right: 16.w,
+                  child: InkWell(
+                    onTap: () {
+                      Get.back();
+                    },
+                    child: SvgPicture.asset(
+                      SvgIcon.close,
+                      height: 24.h,
+                      width: 24.w,
                     ),
-                  )
-                ],
-              ),
-            ));
-          customSnackbar("SUCCESS".tr,
-              "YOUR_PAYMENT_HAS_BEEN_CONFIRMED".tr, AppColor.success);
-          CartController cartController = Get.put(CartController());
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
 
+        customSnackbar(
+          "SUCCESS".tr,
+          "YOUR_PAYMENT_HAS_BEEN_CONFIRMED".tr,
+          AppColor.success,
+        );
+
+        try {
+          final CartController cartController = Get.find<CartController>();
           cartController.cartItems.clear();
-
-        } else if (isFailed || isCancel || isBack) {
-          Get.back();
-          customSnackbar(
-              "ERROR".tr, "PAYMENT_FAILED".tr, AppColor.error);
+        } catch (e) {
+          debugPrint("Cart controller not found: $e");
         }
+      }
+    });
+  }
+
+  void _handleFailedPayment() {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (Get.context != null) {
+        Get.back();
+        customSnackbar(
+          "ERROR".tr,
+          "PAYMENT_FAILED".tr,
+          AppColor.error,
+        );
       }
     });
   }

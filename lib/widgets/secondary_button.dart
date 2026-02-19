@@ -29,32 +29,35 @@ class SecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24.r),
-      child: Ink(
-        height: height,
-        width: width,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24.r),
-            color: buttonColor,
-            border: Border.all(color: borderColor ?? Colors.transparent)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              icon ?? "",
-              height: 24.h,
-              width: 24.w,
-            ),
-            SizedBox(width: 8.w),
-            CustomText(
-              text: text,
-              size: 16.sp,
-              weight: FontWeight.w700,
-              color: textColor,
-            )
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24.r),
+        child: Ink(
+          height: height,
+          width: width,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24.r),
+              color: buttonColor,
+              border: Border.all(color: borderColor ?? Colors.transparent)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                icon ?? "",
+                height: 24.h,
+                width: 24.w,
+              ),
+              SizedBox(width: 8.w),
+              CustomText(
+                text: text,
+                size: 16.sp,
+                weight: FontWeight.w700,
+                color: textColor,
+              )
+            ],
+          ),
         ),
       ),
     );

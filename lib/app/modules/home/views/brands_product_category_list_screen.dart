@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:shopperz/app/apiServices/common_widget.dart';
 import 'package:shopperz/app/controller/home_controller.dart';
@@ -9,7 +8,6 @@ import 'package:shopperz/app/modules/category/views/product_view_details_screen.
 import 'package:shopperz/app/modules/category/views/sqlite_helper.dart';
 import 'package:shopperz/config/theme/app_color.dart';
 import 'package:shopperz/utils/images.dart';
-import 'package:shopperz/utils/svg_icon.dart';
 import 'package:shopperz/widgets/appbar3.dart';
 import 'package:shopperz/widgets/textwidget.dart';
 

@@ -9,7 +9,7 @@ ChildrenVariationModel childrenVariationModelFromJson(String str) => ChildrenVar
 String childrenVariationModelToJson(ChildrenVariationModel data) => json.encode(data.toJson());
 
 class ChildrenVariationModel {
-    final List<Datum>? data;
+    List<Datum>? data;
 
     ChildrenVariationModel({
         this.data,

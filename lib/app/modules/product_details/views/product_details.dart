@@ -27,6 +27,7 @@ import 'package:shopperz/widgets/custom_snackbar.dart';
 import 'package:shopperz/widgets/custom_tabbar.dart';
 import 'package:shopperz/widgets/devider.dart';
 import 'package:shopperz/widgets/secondary_button.dart';
+import 'package:shopperz/widgets/shimmer/product_details_shimmer.dart';
 import 'package:shopperz/widgets/textwidget.dart';
 
 import '../../../../config/theme/app_color.dart';
@@ -67,51 +68,68 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   final wishlistController = Get.find<WishlistController>();
   final authController = Get.put(AuthController());
   final categoryWiseProductController = Get.put(CategoryWiseProductController());
-  // final CategoryControllers _categoryControllers = Get.put(CategoryControllers());
+  final CategoryControllers _categoryControllers = Get.put(CategoryControllers());
 
   int quantity = 1;
   bool isClicked = false;
   int isSelected = 0;
 
-  // @override
-  // void initState() {
-  //   cartController.numOfItems.value = 1;
-  //   productDetailsController.fetchProductDetails(
-  //       slug: widget.productModel?.slug ??
-  //           widget.categoryWiseProduct?.slug ??
-  //           widget.allProductModel?.slug ??
-  //           widget.favoriteItem?.slug ??
-  //           widget.relatedProduct?.slug ??
-  //           widget.individualProduct?.slug ??
-  //           "");
-  //
-  //   productDetailsController.fetchRelatedProduct(
-  //       slug: widget.productModel?.slug ??
-  //           widget.categoryWiseProduct?.slug ??
-  //           widget.allProductModel?.slug ??
-  //           widget.favoriteItem?.slug ??
-  //           widget.individualProduct?.slug ??
-  //           "");
-  //
-  //   productDetailsController.fetchInitialVariation(
-  //       productId: widget.productModel?.id.toString() ??
-  //           widget.categoryWiseProduct?.id.toString() ??
-  //           widget.allProductModel?.id.toString() ??
-  //           widget.favoriteItem?.id.toString() ??
-  //           widget.individualProduct?.id.toString() ??
-  //           "0");
-  //
-  //   authController.getSetting();
-  //
-  //   super.initState();
-  // }
-  //
-  // @override
-  // void dispose() {
-  //   productDetailsController.resetProductState();
-  //   super.dispose();
-  // }
+ @override
+void initState() {
+  super.initState();
+  cartController.numOfItems.value = 1;
 
+  final slug = widget.productModel?.slug ??
+      widget.categoryWiseProduct?.slug ??
+      widget.allProductModel?.slug ??
+      widget.favoriteItem?.slug ??
+      widget.relatedProduct?.slug ??
+      widget.individualProduct?.slug ?? "";
+
+  final productId = widget.productModel?.id.toString() ??
+      widget.categoryWiseProduct?.id.toString() ??
+      widget.allProductModel?.id.toString() ??
+      widget.favoriteItem?.id.toString() ??
+      widget.individualProduct?.id.toString() ?? "0";
+
+  // Fetch everything
+  productDetailsController.fetchProductDetails(slug: slug).then((_) {
+    // After product loads, if NO variations exist, set stock from product directly
+    final data = productDetailsController.productModel.value.data;
+    final hasVariations =
+        productDetailsController.initialVariationModel.value.data != null &&
+        productDetailsController.initialVariationModel.value.data!.isNotEmpty;
+
+    if (!hasVariations && data != null) {
+      productDetailsController.variationProductId.value =
+          data.id?.toString() ?? '';
+      productDetailsController.variationProductPrice.value =
+          data.price?.toString() ?? '';
+      productDetailsController.variationProductCurrencyPrice.value =
+          data.currencyPrice?.toString() ?? '';
+      productDetailsController.variationProductOldPrice.value =
+          data.oldPrice?.toString() ?? '';
+      productDetailsController.variationProductOldCurrencyPrice.value =
+          data.oldCurrencyPrice?.toString() ?? '';
+      productDetailsController.variationsku.value =
+          data.sku?.toString() ?? '';
+      productDetailsController.variationsStock.value =
+          data.stock?.toInt() ?? -1;
+
+      print("✅ Stock set from product: ${productDetailsController.variationsStock.value}");
+    }
+  });
+
+  productDetailsController.fetchRelatedProduct(slug: slug);
+  productDetailsController.fetchInitialVariation(productId: productId);
+  authController.getSetting();
+}
+
+@override
+void dispose() {
+  productDetailsController.resetProductState();
+  super.dispose();
+}
   // @override
   // void didChangeDependencies() {
   //   productDetailsController.fetchProductDetails(
@@ -222,48 +240,48 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   child: RefreshIndicator(
                       color: AppColor.primaryColor,
                       onRefresh: () async {
-                        // productDetailsController.fetchProductDetails(
-                        //     slug: widget.productModel?.slug ??
-                        //         widget.categoryWiseProduct?.slug ??
-                        //         widget.allProductModel?.slug ??
-                        //         widget.favoriteItem?.slug ??
-                        //         widget.relatedProduct?.slug ??
-                        //         widget.individualProduct?.slug ??
-                        //         "");
-                        //
-                        // productDetailsController.fetchRelatedProduct(
-                        //     slug: widget.productModel?.slug ??
-                        //         widget.categoryWiseProduct?.slug ??
-                        //         widget.allProductModel?.slug ??
-                        //         widget.favoriteItem?.slug ??
-                        //         widget.individualProduct?.slug ??
-                        //         "");
-                        //
-                        // productDetailsController.fetchInitialVariation(
-                        //     productId: widget.productModel?.id.toString() ??
-                        //         widget.categoryWiseProduct?.id.toString() ??
-                        //         widget.allProductModel?.id.toString() ??
-                        //         widget.favoriteItem?.id.toString() ??
-                        //         widget.individualProduct?.id.toString() ??
-                        //         "0");
-                        //
-                        // productDetailsController.variationProductId.value = '';
-                        // productDetailsController.variationProductPrice.value = '';
-                        // productDetailsController.variationProductCurrencyPrice.value =
-                        //     '';
-                        // productDetailsController.variationProductOldPrice.value = '';
-                        // productDetailsController
-                        //     .variationProductOldCurrencyPrice.value = '';
-                        // productDetailsController.variationsku.value = '';
-                        // productDetailsController.variationsStock.value = -1;
+                        productDetailsController.fetchProductDetails(
+                            slug: widget.productModel?.slug ??
+                                widget.categoryWiseProduct?.slug ??
+                                widget.allProductModel?.slug ??
+                                widget.favoriteItem?.slug ??
+                                widget.relatedProduct?.slug ??
+                                widget.individualProduct?.slug ??
+                                "");
+                        
+                        productDetailsController.fetchRelatedProduct(
+                            slug: widget.productModel?.slug ??
+                                widget.categoryWiseProduct?.slug ??
+                                widget.allProductModel?.slug ??
+                                widget.favoriteItem?.slug ??
+                                widget.individualProduct?.slug ??
+                                "");
+                        
+                        productDetailsController.fetchInitialVariation(
+                            productId: widget.productModel?.id.toString() ??
+                                widget.categoryWiseProduct?.id.toString() ??
+                                widget.allProductModel?.id.toString() ??
+                                widget.favoriteItem?.id.toString() ??
+                                widget.individualProduct?.id.toString() ??
+                                "0");
+                        
+                        productDetailsController.variationProductId.value = '';
+                        productDetailsController.variationProductPrice.value = '';
+                        productDetailsController.variationProductCurrencyPrice.value =
+                            '';
+                        productDetailsController.variationProductOldPrice.value = '';
+                        productDetailsController
+                            .variationProductOldCurrencyPrice.value = '';
+                        productDetailsController.variationsku.value = '';
+                        productDetailsController.variationsStock.value = -1;
                       },
                       child: SingleChildScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           child:
-                              // Obx(
-                              //   () => productDetailsController.isLaoding.value == 1
-                              //       ? const ProductDetailsShimmer()
-                              //       :
+                              Obx(
+                                () => productDetailsController.isLaoding.value == 1
+                                    ? const ProductDetailsShimmer()
+                                    :
                               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             CachedNetworkImage(
                                 imageUrl: isClicked
@@ -343,8 +361,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               SizedBox(height: 8.h),
                               Row(children: [
                                 RatingBarIndicator(
-                                    rating: double.parse(
-                                        '${productDetailsController.productModel.value.data!.ratingStar.toString() == 'null' ? '0' : double.parse(productDetailsController.productModel.value.data!.ratingStar.toString()) / productDetailsController.productModel.value.data!.ratingStarCount!.toInt()}'),
+                                    rating: () {
+                                    final star = double.tryParse(productDetailsController.productModel.value.data?.ratingStar?.toString() ?? '0') ?? 0.0;
+                                    final count = productDetailsController.productModel.value.data?.ratingStarCount ?? 0;
+                                    return count > 0 ? star / count : 0.0;
+                                  }(),
                                     itemSize: 11.h,
                                     unratedColor: AppColor.inactiveColor,
                                     itemBuilder: (context, index) => Container(
@@ -1208,104 +1229,126 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   text: "ADD_TO_CART".tr,
                                   buttonColor: productDetailsController.variationsStock.value > 0 ? AppColor.primaryColor : AppColor.grayColor,
                                   onTap: () async {
-                                    if (productDetailsController.initialVariationModel.value.data != null &&
-                                        productDetailsController.initialVariationModel.value.data!.length > 0) {
-                                      if (productDetailsController.variationsStock.value > 0) {
-                                        await productDetailsController.finalVariation(id: productDetailsController.variationProductId.toString());
-                                        cartController.totalIndividualProductTax = 0.0;
-                                        productDetailsController.productModel.value.data!.taxes!.map((e) {
-                                          cartController.totalIndividualProductTax += double.parse(e.taxRate.toString());
-                                        }).toList();
+  // DEBUG - remove after fixing
+  print("=== CART TAP ===");
+  print("stock: ${productDetailsController.variationsStock.value}");
+  print("productId: ${productDetailsController.productModel.value.data?.id}");
+  print("settingModel: ${authController.settingModel}");
 
-                                        var taxMap = productDetailsController.productModel.value.data!.taxes!.map((e) {
-                                          return {
-                                            "id": e.id!.toInt(),
-                                            "name": e.name.toString(),
-                                            "code": e.code.toString(),
-                                            "tax_rate": double.tryParse(e.taxRate.toString()),
-                                            'tax_amount': double.tryParse(cartController.totalTax.toString()),
-                                          };
-                                        }).toList();
+  final stock = productDetailsController.variationsStock.value;
+  final productData = productDetailsController.productModel.value.data;
 
-                                        cartController.addItem(
-                                            variationStock: productDetailsController.variationsStock.value.toInt(),
-                                            product: productDetailsController.productModel.value,
-                                            variationId: int.parse(productDetailsController.variationProductId.value),
-                                            shippingAmount: authController.settingModel!.data!.shippingSetupMethod.toString() == "5" &&
-                                                    productDetailsController.productModel.value.data?.shipping?.shippingType.toString() == "5"
-                                                ? "0"
-                                                : productDetailsController.productModel.value.data!.shipping!.shippingCost,
-                                            finalVariation: productDetailsController.finalVariationString,
-                                            sku: productDetailsController.variationsku.value,
-                                            taxJson: taxMap,
-                                            stock: productDetailsController.variationsStock.value,
-                                            shipping: productDetailsController.productModel.value.data!.shipping,
-                                            productVariationPrice: productDetailsController.variationProductPrice.value,
-                                            productVariationOldPrice: productDetailsController.variationProductOldPrice.value,
-                                            productVariationCurrencyPrice: productDetailsController.variationProductCurrencyPrice.value,
-                                            productVariationOldCurrencyPrice: productDetailsController.variationProductOldCurrencyPrice.value,
-                                            totalTax: cartController.totalIndividualProductTax,
-                                            flatShippingCost: authController.settingModel?.data?.shippingSetupFlatRateWiseCost.toString() ?? "0");
+  // Guard: product not loaded yet
+  if (productData == null) {
+    customSnackbar("ERROR".tr, "Product not loaded".tr, AppColor.error);
+    return;
+  }
 
-                                        cartController.calculateShippingCharge(
-                                            shippingMethodStatus: authController.shippingMethod,
-                                            shippingType: productDetailsController.productModel.value.data?.shipping?.shippingType.toString() ?? "0",
-                                            isProductQntyMultiply:
-                                                productDetailsController.productModel.value.data?.shipping?.isProductQuantityMultiply.toString() ??
-                                                    "0",
-                                            flatShippingCharge: authController.settingModel?.data?.shippingSetupFlatRateWiseCost);
+  // Guard: no stock
+  if (stock <= 0) {
+    customSnackbar("ERROR".tr, "Out of stock".tr, AppColor.error);
+    return;
+  }
 
-                                        customSnackbar("SUCCESS".tr, "Product added to cart".tr, AppColor.success);
-                                      } else {}
-                                    } else {
-                                      if (productDetailsController.variationsStock.value > 0) {
-                                        cartController.totalIndividualProductTax = 0.0;
+  // Guard: settingModel not loaded
+  if (authController.settingModel == null) {
+    customSnackbar("ERROR".tr, "Settings not loaded, try again".tr, AppColor.error);
+    return;
+  }
 
-                                        productDetailsController.productModel.value.data!.taxes!.map((e) {
-                                          cartController.totalIndividualProductTax += double.parse(e.taxRate.toString());
-                                        }).toList();
-                                        var taxMap = productDetailsController.productModel.value.data!.taxes!.map((e) {
-                                          return {
-                                            "id": e.id!.toInt(),
-                                            "name": e.name.toString(),
-                                            "code": e.code.toString(),
-                                            "tax_rate": double.tryParse(e.taxRate.toString()),
-                                            'tax_amount': double.tryParse(cartController.totalTax.toString()),
-                                          };
-                                        }).toList();
+  final hasVariations = productDetailsController
+          .initialVariationModel.value.data != null &&
+      productDetailsController
+          .initialVariationModel.value.data!.isNotEmpty;
 
-                                        cartController.addItem(
-                                            variationStock: productDetailsController.variationsStock.value.toInt(),
-                                            product: productDetailsController.productModel.value,
-                                            variationId: int.parse(productDetailsController.variationProductId.value),
-                                            shippingAmount: authController.settingModel!.data!.shippingSetupMethod.toString() == "5" &&
-                                                    productDetailsController.productModel.value.data?.shipping?.shippingType.toString() == "5"
-                                                ? "0"
-                                                : productDetailsController.productModel.value.data!.shipping!.shippingCost,
-                                            finalVariation: productDetailsController.finalVariationString,
-                                            sku: productDetailsController.productModel.value.data!.sku,
-                                            taxJson: taxMap,
-                                            stock: productDetailsController.productModel.value.data!.stock,
-                                            shipping: productDetailsController.productModel.value.data!.shipping,
-                                            productVariationPrice: productDetailsController.productModel.value.data!.price,
-                                            productVariationOldPrice: productDetailsController.productModel.value.data!.oldPrice,
-                                            productVariationCurrencyPrice: productDetailsController.productModel.value.data!.currencyPrice,
-                                            productVariationOldCurrencyPrice: productDetailsController.productModel.value.data!.oldCurrencyPrice,
-                                            totalTax: cartController.totalIndividualProductTax,
-                                            flatShippingCost: authController.settingModel?.data?.shippingSetupFlatRateWiseCost.toString() ?? "0");
+  // Calculate tax
+  cartController.totalIndividualProductTax = 0.0;
+  productData.taxes?.forEach((e) {
+    cartController.totalIndividualProductTax +=
+        double.tryParse(e.taxRate.toString()) ?? 0.0;
+  });
 
-                                        cartController.calculateShippingCharge(
-                                          shippingMethodStatus: authController.shippingMethod,
-                                          shippingType: productDetailsController.productModel.value.data?.shipping?.shippingType.toString() ?? "0",
-                                          isProductQntyMultiply:
-                                              productDetailsController.productModel.value.data?.shipping?.isProductQuantityMultiply.toString() ?? "0",
-                                          flatShippingCharge: authController.settingModel?.data?.shippingSetupFlatRateWiseCost,
-                                        );
+  final taxMap = productData.taxes?.map((e) => {
+    "id": e.id?.toInt() ?? 0,
+    "name": e.name.toString(),
+    "code": e.code.toString(),
+    "tax_rate": double.tryParse(e.taxRate.toString()) ?? 0.0,
+    "tax_amount": double.tryParse(cartController.totalTax.toString()) ?? 0.0,
+  }).toList() ?? [];
 
-                                        customSnackbar("SUCCESS".tr, "Product added to cart".tr, AppColor.success);
-                                      } else {}
-                                    }
-                                  }),
+  // Shipping amount
+  final shippingSetupMethod =
+      authController.settingModel?.data?.shippingSetupMethod?.toString();
+  final productShippingType =
+      productData.shipping?.shippingType?.toString();
+  final shippingAmount =
+      (shippingSetupMethod == "5" && productShippingType == "5")
+          ? "0"
+          : productData.shipping?.shippingCost ?? "0";
+
+  final flatShipping =
+      authController.settingModel?.data?.shippingSetupFlatRateWiseCost
+          ?.toString() ?? "0";
+
+  if (hasVariations) {
+    await productDetailsController.finalVariation(
+        id: productDetailsController.variationProductId.toString());
+
+    cartController.addItem(
+      variationStock: stock,
+      product: productDetailsController.productModel.value,
+      variationId: int.tryParse(
+              productDetailsController.variationProductId.value) ?? 0,
+      shippingAmount: shippingAmount,
+      finalVariation: productDetailsController.finalVariationString,
+      sku: productDetailsController.variationsku.value,
+      taxJson: taxMap,
+      stock: stock,
+      shipping: productData.shipping,
+      productVariationPrice:
+          productDetailsController.variationProductPrice.value,
+      productVariationOldPrice:
+          productDetailsController.variationProductOldPrice.value,
+      productVariationCurrencyPrice:
+          productDetailsController.variationProductCurrencyPrice.value,
+      productVariationOldCurrencyPrice:
+          productDetailsController.variationProductOldCurrencyPrice.value,
+      totalTax: cartController.totalIndividualProductTax,
+      flatShippingCost: flatShipping,
+    );
+  } else {
+    cartController.addItem(
+      variationStock: stock,
+      product: productDetailsController.productModel.value,
+      variationId: int.tryParse(
+              productDetailsController.variationProductId.value) ?? 0,
+      shippingAmount: shippingAmount,
+      finalVariation: productDetailsController.finalVariationString,
+      sku: productData.sku ?? "",
+      taxJson: taxMap,
+      stock: productData.stock,
+      shipping: productData.shipping,
+      productVariationPrice: productData.price,
+      productVariationOldPrice: productData.oldPrice,
+      productVariationCurrencyPrice: productData.currencyPrice,
+      productVariationOldCurrencyPrice: productData.oldCurrencyPrice,
+      totalTax: cartController.totalIndividualProductTax,
+      flatShippingCost: flatShipping,
+    );
+  }
+
+  cartController.calculateShippingCharge(
+    shippingMethodStatus: authController.shippingMethod,
+    shippingType: productData.shipping?.shippingType?.toString() ?? "0",
+    isProductQntyMultiply:
+        productData.shipping?.isProductQuantityMultiply?.toString() ?? "0",
+    flatShippingCharge: authController
+        .settingModel?.data?.shippingSetupFlatRateWiseCost,
+  );
+
+  customSnackbar(
+      "SUCCESS".tr, "Product added to cart".tr, AppColor.success);
+},),
                               InkWell(
                                   onTap: () async {
                                     if (box.read('isLogedIn') != false) {
@@ -1403,7 +1446,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                     SizedBox(height: 12.h)
                                   ]))
                           ])
-                          // ),
+                          ),
                           ))));
         }));
   }

@@ -19,6 +19,8 @@ class CategoryControllers extends GetxController {
   RxBool isLoading = false.obs,isOtherLoading=false.obs;
   RxBool isError = false.obs;
   RxString error = "".obs;
+  RxBool isInterestedLoading = false.obs;
+
 
   // List<dynamic> getAll(String categoryId) {
   //   List<dynamic> items = [];
@@ -39,7 +41,7 @@ class CategoryControllers extends GetxController {
   RxList<Category> categoryList = <Category>[].obs;
   ContactDatabaseHelper contactDatabaseHelper = ContactDatabaseHelper();
 
-  categoryListDetails({required BuildContext context, String? categoryId}) async {
+  Future<void> categoryListDetails({required BuildContext context, String? categoryId}) async {
     isLoading(true);
     isError(false);
     error("");
@@ -103,7 +105,7 @@ class CategoryControllers extends GetxController {
   RxList<Product> productList = <Product>[].obs;
   String sortByID = "5";
 
-  productListDetails({
+  Future<void> productListDetails({
     required BuildContext context,
     required String categoryId,
     // required String sortBy,
@@ -150,7 +152,7 @@ class CategoryControllers extends GetxController {
     }
   }
 
-  filterProductListDetails({
+  Future<void> filterProductListDetails({
     required BuildContext context,
     required String categoryId,
     required String sortBy,
@@ -210,7 +212,7 @@ class CategoryControllers extends GetxController {
   RxList<Product> recentProductList = <Product>[].obs;
   RxList<BrandProduct> recentBrandProductList = <BrandProduct>[].obs;
   RxList<RecentProduct> recentAllList = <RecentProduct>[].obs;
-  productViewDetails({required BuildContext context, required String itemId}) async {
+  Future<void> productViewDetails({required BuildContext context, required String itemId}) async {
     isOtherLoading(true);
     isError(false);
     error("");
@@ -250,7 +252,10 @@ class CategoryControllers extends GetxController {
               Map<String, dynamic> valueMap = json.decode(value.response);
               // if (valueMap["statusCode"] == 200) {
               ProductDetailsModel productDetailsModel = ProductDetailsModel.fromJson(valueMap);
+              // productDetails.addAll(productDetailsModel.productDetails);
               productDetails.addAll(productDetailsModel.productDetails);
+isOtherLoading(false);  // ✅ stop main loading FIRST
+productInterested(context: context, itemId: productDetails[0].id);
 
               // if (productDetails.isNotEmpty && productDetails.length > 0) {
               //   final document = htmlParser.parse(productDetails[0].fullDescription);
@@ -289,7 +294,7 @@ class CategoryControllers extends GetxController {
               // isOtherLoading(false);
 
                 // if (productDetails[0].id == customerItemsList.id) {
-                  productInterested(context: context, itemId: productDetails[0].id);
+                  // productInterested(context: context, itemId: productDetails[0].id);
               //   } else {
               //     isOtherLoading(false);
               // }
@@ -310,45 +315,31 @@ class CategoryControllers extends GetxController {
 
   RxList<CustomerItems> customerItemsList = <CustomerItems>[].obs;
   productInterested({required BuildContext context, required String itemId}) async {
-    isOtherLoading(true);
-    isError(false);
-    error("");
-    customerItemsList.clear();
+  isInterestedLoading(true);  // ← use separate flag, NOT isOtherLoading
+  isError(false);
+  error("");
+  customerItemsList.clear();
 
-    try {
-      // final Future<Database> dbFuture = contactDatabaseHelper.initializeDatabase();
-      // print("customerItemsList============$customerItemsList");
-      // dbFuture.then((database) async {
-      //   customerItemsList.value = await contactDatabaseHelper.getAllInterestedProduct();
-      //
-      //   if (customerItemsList.isEmpty) {
-      getAPI(
-          methodName: ApiList.productInterested,
-          param: {"id": itemId},
-          callback: (value) {
-            try {
-              Map<String, dynamic> valueMap = json.decode(value.response);
-              ProductInterestedListModel productInterestedListModel = ProductInterestedListModel.fromJson(valueMap);
-              customerItemsList.addAll(productInterestedListModel.customerItems);
-              // if (customerItemsList.isNotEmpty) {
-              //   for (int i = 0; i < customerItemsList.length; i++) {
-              //     contactDatabaseHelper.insertInterestedProduct(customerItemsList[i]);
-              //   }
-              // }
-              isOtherLoading(false);
-            } catch (e) {
-              isOtherLoading(false);
-            }
-          });
-      //   } else {
-      //     isLoading(false);
-      //   }
-      // });
-    } catch (ex) {
-      handleError("Failed to fetch data: $ex", context);
-      isOtherLoading(false);
-    }
+  try {
+    getAPI(
+        methodName: ApiList.productInterested,
+        param: {"id": itemId},
+        callback: (value) {
+          try {
+            Map<String, dynamic> valueMap = json.decode(value.response);
+            ProductInterestedListModel productInterestedListModel = 
+                ProductInterestedListModel.fromJson(valueMap);
+            customerItemsList.addAll(productInterestedListModel.customerItems);
+            isInterestedLoading(false);  // ← use separate flag
+          } catch (e) {
+            isInterestedLoading(false);  // ← use separate flag
+          }
+        });
+  } catch (ex) {
+    handleError("Failed to fetch data: $ex", context);
+    isInterestedLoading(false);  // ← use separate flag
   }
+}
   // getRelatedProducts({required BuildContext context, required String itemId}) async {
   //   isOtherLoading(true);
   //   isError(false);

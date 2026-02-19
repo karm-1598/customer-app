@@ -124,14 +124,14 @@ class CartController extends GetxController {
   double get totalTax {
     double tTax = 0.0;
     for (var item in cartItems) {
-      tTax += ((item.quantity * double.parse(item.variationPrice.toString())) /
+      tTax += ((item.quantity.value * double.parse(item.variationPrice.toString())) /
               100) *
           item.totalProductTax!.toDouble();
     }
     return tTax;
   }
 
-  calculateShippingCharge(
+  void calculateShippingCharge(
       {required String shippingMethodStatus,
       String? shippingType,
       String? isProductQntyMultiply,
