@@ -22,14 +22,51 @@ class ChangePasswordScreen extends StatefulWidget {
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  ProfileController profileController = Get.put(ProfileController());
+  ProfileController profileController = Get.isRegistered<ProfileController>()?Get.find<ProfileController>(): Get.put(ProfileController());
+  Worker? _worker;
 
   void initState() {
-    // TODO: implement initState
     super.initState();
+    setState(() {
+      hideOldPass=true;
+      hideNewPass=true;
+    });
+    _worker = ever(profileController.passwordUpdateStatus, (int status) {
+      if (status == 1) {
+        // ✅ Success
+        
+        Get.snackbar(
+          'CHANGE_PASSWORD'.tr,
+          'PASSWORD_UPDATE_SUCCESSFULLY'.tr,
+          backgroundColor: AppColor.success,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        Future.delayed(Duration(seconds: 1), () {
+      Navigator.of(context).pop(); // ✅ instead of Get.back()
+    });
+        
+      } else if (status == 2) {
+        // ✅ Failed
+        Get.snackbar(
+          'CHANGE_PASSWORD'.tr,
+          'PASSWORD_UPDATE_FAILED'.tr,
+          backgroundColor: AppColor.error,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    });
+  }
+  @override
+  void dispose() {
+    _worker?.dispose(); // ✅ clean up worker
+    super.dispose();
   }
 
   bool validate = false;
+  bool hideOldPass=true;
+  bool hideNewPass=true;
 
 
   @override
@@ -75,7 +112,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                     validator: (value) => value!.isEmpty
                                                   ? 'PLEASE_TYPE_OLD_PASSWORD'.tr
                                                   : null,
-                              obsecure: true,
+                              obsecure: hideOldPass,
+                              trailingIcon: IconButton(onPressed: (){
+                                setState(() {
+                                  hideOldPass=!hideOldPass;
+                                });
+                              }, icon: !hideOldPass? Icon(Icons.visibility):Icon(Icons.visibility_off)),
                             ),
                             SizedBox(height: 20.h),
                             FormFieldTitle(title: "New Password".tr),
@@ -85,18 +127,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                     validator: (value) => value!.isEmpty
                                                   ? 'PLEASE_TYPE_NEW_PASSWORD'.tr
                                                   : null,
-                              obsecure: true,
+                              obsecure: hideNewPass,
+                              trailingIcon: IconButton(onPressed: (){
+                                setState(() {
+                                  hideNewPass=!hideNewPass;
+                                });
+                              }, icon: !hideNewPass? Icon(Icons.visibility):Icon(Icons.visibility_off)),
                             ),
-                            SizedBox(height: 20.h),
-                            FormFieldTitle(title: "Confirm Password".tr),
-                            SizedBox(height: 4.h),
-                            CustomFormField(
-                              controller: profileController.confirmPasswordController,
-                                    validator: (value) => value!.isEmpty
-                                                  ? 'PLEASE_TYPE_CONFIRM_PASSWORD'.tr : value != profileController.newPasswordController.text ? 'PASSWORD_NOT_MATCHED'.tr
-                                                  : null,
-                              obsecure: true,
-                            ),
+                            
                             SizedBox(height: 30.h),
                             PrimaryButton(
                               text: "Save Changes".tr,
@@ -124,14 +162,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   void validateAndSave(context) {
-    final FormState? form = _formKey.currentState;
-    if (form!.validate()) {
-      FocusManager.instance.primaryFocus?.unfocus();
-      profileController.updateUserPassword();
-      validate = true;
-    } else {
-      validate = false;
-    }
+  final FormState? form = _formKey.currentState;
+  if (form!.validate()) {
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    profileController.updateUserPassword(
+      profileController.oldPasswordController.value.text,
+      profileController.newPasswordController.value.text,
+    );
+    validate = true;
+  } else {
+    validate = false;
   }
+}
 
 }

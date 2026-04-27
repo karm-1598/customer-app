@@ -90,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
               }),
         ),
         body: GetX<HomeControllers>(
-          init: HomeControllers(),
           builder: (controller) {
             if (controller.isLoading.value) {
               return const LoadingWidget();
@@ -98,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return RefreshIndicator(
               color: AppColor.primaryColor,
               onRefresh: () async {
-                homeControllers.homeBannerList(context: context);
+                // homeControllers.homeBannerList(context: context);
                 // productSectionController.fetchProductSection();
                 // categoryController.fetchCategory();
                 // brandController.fetchBrands();
@@ -116,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // }
               },
               child: Padding(
-                padding: EdgeInsets.only(top: 16.h, left: 16.w),
+                padding: EdgeInsets.only(top: 8.h, left: 16.w),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,9 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               padding: EdgeInsets.only(right: 16.w),
                               child: controller.bannerList.isEmpty
                                   ? const SliderSectionShimmer()
-                                  : controller.bannerList.isNotEmpty
-                                      ? SliderWidget(bannerList: controller.bannerList)
-                                      : const SizedBox()),
+                                  : SliderWidget(bannerList: controller.bannerList)),
                           SizedBox(height: 24.h),
                           controller.homePageCategoryList.isNotEmpty
                               ? Padding(
@@ -148,7 +145,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               : controller.homePageCategoryList.isNotEmpty
                                   ? CategoryWidget(homePageCategory: controller.homePageCategoryList)
                                   : const SizedBox(),
-                          PromotionBanner(promotionCategoryBannerList: controller.promotionCategoryBannerList)
+                          AspectRatio(
+                            aspectRatio: 5/2,
+                            child: PromotionBanner(promotionCategoryBannerList: controller.promotionCategoryBannerList))
                         ],
                       ),
                       SizedBox(height: 32.h),
@@ -163,54 +162,37 @@ class _HomeScreenState extends State<HomeScreen> {
                                       children: [
                                         TitleWidget(text: "Latest Addition"),
                                         const SizedBox(height: 15),
-                                        StaggeredGrid.count(
-                                          crossAxisCount: 2,
+                                        MasonryGridView.builder(
+                                          shrinkWrap: true,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                          ),
                                           mainAxisSpacing: 15,
                                           crossAxisSpacing: 15,
-                                          children: [
-                                            for (var i = 0; i < controller.homePageProductList.length; i++)
-                                              ProductWidget2(
-                                                onTap: () async {
-                                                 await Get.to(
-                                                    () => ProductViewDetailsScreen(itemId: controller.homePageProductList[i].productId));
-                                                  homeControllers.homeBannerList(context: context);
+                                          itemCount: controller.homePageProductList.length,
+                                          itemBuilder: (context, index) {
+                                            final product = controller.homePageProductList[index];
 
+                                            return RepaintBoundary(
+                                              child: ProductWidget2(
+                                                onTap: () async {
+                                                  await Get.to(
+                                                    () => ProductViewDetailsScreen(
+                                                      itemId: product.productId,
+                                                    ),
+                                                  );
+                                                  
                                                 },
-                                                // favTap: () async {
-                                                // if (box.read('isLogedIn') != false) {
-                                                //   if (section[index].products![i].wishlist == true) {
-                                                //     await wishListController.toggleFavoriteFalse(section[index].products![i].id!);
-                                                //     wishListController.showFavorite(section[index].products![i].id!);
-                                                //   }
-                                                //   if (section[index].products![i].wishlist == false) {
-                                                //     await wishListController.toggleFavoriteTrue(section[index].products![i].id!);
-                                                //     wishListController.showFavorite(section[index].products![i].id!);
-                                                //   }
-                                                // } else {
-                                                //   Get.to(() => const SignInScreen());
-                                                // }
-                                                // },
-                                                // wishlist:
-                                                // wishListController.favList.contains(section[index].products![i].id!) ||
-                                                //         productSectionController
-                                                //                 .productSection.value.data![index].products![i].wishlist ==
-                                                //             true
-                                                //     ? true
-                                                //     :
-                                                // false,
-                                                productImage: controller.homePageProductList[i].image,
-                                                title: controller.homePageProductList[i].brandName,
-                                                titleDesc: controller.homePageProductList[i].name,
-                                                  price:controller.homePageProductList[i].price,
-                                                // rating: section[index].products![i].ratingStar,
-                                                // currentPrice: section[index].products![i].currencyPrice,
-                                                // discountPrice: section[index].products![i].discountedPrice,
-                                                // textRating: section[index].products![i].ratingStarCount,
-                                                // flashSale: section[index].products![i].flashSale!,
-                                                // isOffer: section[index].products![i].isOffer!,
-                                              )
-                                          ]
+                                                productImage: product.image,
+                                                title: product.brandName,
+                                                titleDesc: product.name,
+                                                price: product.price,
+                                              ),
+                                            );
+                                          },
                                         ),
+
                                         const SizedBox(height: 30),
                                         // MultiPromotionBanner(
                                         //   pIndex: index,
@@ -396,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     height: controller.manufacturerList.isEmpty? 0 : 150.h,
                                     child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
-                                      shrinkWrap: true,
+                                      cacheExtent: 500,
                                       itemCount: controller.manufacturerList.length,
                                       itemBuilder: (context, index) {
                                         return InkWell(
@@ -404,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           onTap: ()  {
 
                                             // filterController.addHomeBrandId(brandController.brandModel.value.data![index].id.toString());
-                                            Get.delete<HomeControllers>();
+                                            // Get.delete<HomeControllers>();
 
                                           // Get.to(() => BrandsProductCategoryListScreen(
                                           //       productBrandId: controller.manufacturerList[index].id!,
@@ -444,16 +426,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         child: Column(
                                                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                                                           children: [
-                                                            CachedNetworkImage(
-                                                                imageUrl: controller.manufacturerList[index].image.toString(),
-                                                                fit: BoxFit.fill,
-                                                                imageBuilder: (context, imageProvider) => Container(
-                                                                      height: 100.h,
-                                                                      width: 140.w,
-                                                                      decoration: BoxDecoration(
-                                                                        image: DecorationImage(image: imageProvider),
-                                                                      ),
-                                                                    )),
+                                                            AspectRatio(
+                                                              aspectRatio: 1,
+                                                              child: ClipRRect(
+                                                                borderRadius: BorderRadius.circular(10),
+                                                                child: CachedNetworkImage(
+                                                                    imageUrl: controller.manufacturerList[index].image.toString(),
+                                                                    memCacheWidth: 200,  
+                                                                    memCacheHeight: 200,
+                                                                    maxWidthDiskCache: 200,
+                                                                    maxHeightDiskCache: 200,
+                                                                    fit: BoxFit.fill,
+                                                                    imageBuilder: (context, imageProvider) => Container(
+                                                                          height: 100.h,
+                                                                          width: 140.w,
+                                                                          decoration: BoxDecoration(
+                                                                            image: DecorationImage(image: imageProvider),
+                                                                          ),
+                                                                        )),
+                                                              ),
+                                                            ),
                                                             const SizedBox(height: 15),
                                                             CustomText(
                                                               text: controller.manufacturerList[index].name,

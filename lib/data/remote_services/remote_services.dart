@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'dart:core';
-
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
@@ -8,24 +6,15 @@ import 'package:shopperz/app/modules/cart/model/product_model.dart';
 import 'package:shopperz/app/modules/category/controller/category_wise_product_controller.dart';
 import 'package:shopperz/app/modules/category/model/category_tree.dart';
 import 'package:shopperz/app/modules/category/model/category_wise_product.dart';
-import 'package:shopperz/app/modules/coupon/model/apply_coupon.dart';
 import 'package:shopperz/app/modules/home/model/brand_model.dart';
 import 'package:shopperz/app/modules/home/model/category_model.dart';
 import 'package:shopperz/app/modules/home/model/product_section.dart';
 import 'package:shopperz/app/modules/home/model/promotion_model.dart';
-import 'package:shopperz/app/modules/language/model/language_model.dart';
-import 'package:shopperz/app/modules/shipping/model/area_shipping.dart';
-import 'package:shopperz/app/modules/payment/model/paymet_method.dart';
 import 'package:shopperz/app/modules/product_details/model/children_variation.dart';
 import 'package:shopperz/app/modules/product_details/model/initial_variation.dart';
 import 'package:shopperz/app/modules/product_details/model/related_product.dart';
 import 'package:shopperz/app/modules/search/model/all_product.dart';
-import 'package:shopperz/app/modules/shipping/model/coupon.dart';
-import 'package:shopperz/app/modules/shipping/model/outlet_model.dart';
-import 'package:shopperz/app/modules/shipping/model/show_address.dart';
 
-import 'package:shopperz/data/model/country_code_model.dart';
-import 'package:shopperz/data/model/setting_model.dart';
 import 'package:shopperz/data/server/app_server.dart';
 import 'package:shopperz/utils/api_list.dart';
 
@@ -37,7 +26,8 @@ class RemoteServices {
     BaseOptions options = BaseOptions(
         followRedirects: false,
         validateStatus: (status) {
-          return status! < 500;
+          // here is 600 for now after during real implement change to 500
+          return status! < 600;
         },
         headers: AppServer.getAuthHeaders());
 
@@ -48,7 +38,8 @@ class RemoteServices {
     BaseOptions options = BaseOptions(
         followRedirects: false,
         validateStatus: (status) {
-          return status! < 500;
+          // here is 600 for now after during real implement change to 500
+          return status! < 600;
         },
         headers: AppServer.getHttpHeadersWithToken());
 
@@ -57,39 +48,39 @@ class RemoteServices {
 
   AppServer server = AppServer();
 
-  static Future<SettingModel> getSetting() async {
-    var response;
-    var dio = Dio(
-      await getBasseOptions(),
-    );
-    String url = ApiList.setting.toString();
-    try {
-      response = await dio.get(url);
-      if (response.statusCode == 200) {
-        return SettingModel.fromJson(response.data);
-      }
-    } catch (e) {
-      print(e);
-    }
-    return SettingModel.fromJson(response.data);
-  }
+  // static Future<SettingModel> getSetting() async {
+  //   var response;
+  //   var dio = Dio(
+  //     await getBasseOptions(),
+  //   );
+  //   String url = ApiList.setting.toString();
+  //   try {
+  //     response = await dio.get(url);
+  //     if (response.statusCode == 200) {
+  //       return SettingModel.fromJson(response.data);
+  //     }
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  //   return SettingModel.fromJson(response.data);
+  // }
 
-  static Future<CountryCodeModel> getCountryCode() async {
-    var response;
-    var dio = Dio(
-      await getBasseOptions(),
-    );
-    String url = ApiList.countryCode.toString();
-    try {
-      response = await dio.get(url);
-      if (response.statusCode == 200) {
-        return CountryCodeModel.fromJson(response.data);
-      }
-    } catch (e) {
-      print(e);
-    }
-    return CountryCodeModel.fromJson(response.data);
-  }
+  // static Future<CountryCodeModel> getCountryCode() async {
+  //   var response;
+  //   var dio = Dio(
+  //     await getBasseOptions(),
+  //   );
+  //   String url = ApiList.countryCode.toString();
+  //   try {
+  //     response = await dio.get(url);
+  //     if (response.statusCode == 200) {
+  //       return CountryCodeModel.fromJson(response.data);
+  //     }
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  //   return CountryCodeModel.fromJson(response.data);
+  // }
 
   Future<Either<String, SliderModel>> fetchSlider() async {
     final response = await server.getRequest(
@@ -127,9 +118,9 @@ class RemoteServices {
   Future<Either<String, ProductSectionModel>> fetchProductSection() async {
     final response = await server.getRequest(
         endPoint: ApiList.productSection + '?order_type=asc&status=5',
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken());
+        headers: box.read('isLogedIn') == true
+    ? AppServer.getHttpHeadersWithToken()
+    : AppServer.getAuthHeaders());
 
     if (response.statusCode == 200) {
       final data = response.data;
@@ -176,9 +167,9 @@ class RemoteServices {
   }) async {
     final response = await server.postRequest(
         endPoint: ApiList.categoryWiseProduct,
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken(),
+        headers: box.read('isLogedIn') == true
+    ? AppServer.getHttpHeadersWithToken()
+    : AppServer.getAuthHeaders(),
         body: {
           "category": category,
           "brand": brands,
@@ -206,9 +197,9 @@ class RemoteServices {
         endPoint: ApiList.productDetails +
             slug +
             '?slug=$slug&review_limit=$reviewLimit',
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken());
+        headers: box.read('isLogedIn') == true
+    ? AppServer.getHttpHeadersWithToken()
+    : AppServer.getAuthHeaders());
     if (response.statusCode == 200) {
       final data = response.data;
       return Right(ProductModel.fromJson(data));
@@ -221,9 +212,9 @@ class RemoteServices {
       {required String slug}) async {
     final response = await server.getRequest(
         endPoint: ApiList.relatedProducts + slug,
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken());
+        headers: box.read('isLogedIn') == true
+    ? AppServer.getHttpHeadersWithToken()
+    : AppServer.getAuthHeaders());
 
     if (response.statusCode == 200) {
       final data = response.data;
@@ -292,78 +283,13 @@ class RemoteServices {
     return response;
   }
 
-  Future<Either<String, ShowAddressModel>> fetchAddress() async {
-    final response = await server.getRequest(
-        endPoint: ApiList.showAddress,
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken());
-    if (response.statusCode == 200) {
-      final data = response.data;
-      return Right(ShowAddressModel.fromJson(data));
-    } else {
-      return const Left("Something went wrong.");
-    }
-  }
-
-  Future<Either<String, OutletModel>> fetchOutlets() async {
-    final response = await server.getRequest(
-        endPoint: ApiList.outlet, headers: AppServer.getHttpHeadersWithToken());
-    if (response.statusCode == 200) {
-      final data = response.data;
-      return Right(OutletModel.fromJson(data));
-    } else {
-      return const Left("Something went wrong.");
-    }
-  }
-
-  Future<Either<String, LanguageModel>> fetchLanguage() async {
-    final response = await server.postRequest(endPoint: ApiList.language);
-    if (response.statusCode == 200) {
-      final data = response.data;
-
-      return Right(LanguageModel.fromJson(data));
-    } else {
-      return const Left("Something went wrong.");
-    }
-  }
-
-  Future<Either<String, CouponModel>> fetchCoupon() async {
-    final response = await server.getRequest(
-        endPoint: ApiList.coupon, headers: AppServer.getHttpHeadersWithToken());
-    if (response.statusCode == 200) {
-      final data = response.data;
-
-      return Right(CouponModel.fromJson(data));
-    } else {
-      return const Left("Something went wrong.");
-    }
-  }
-
-  Future<Either<String, ApplyCoupon>> submitCoupon(
-      {required String code, required String total}) async {
-    final response =
-        await server.httpPost(endPoint: ApiList.applyCoupon, body: {
-      "code": code,
-      "total": total,
-    });
-
-    if (response.statusCode == 200) {
-      box.write("applyCoupon", true);
-      final data = jsonDecode(response.body);
-      return Right(ApplyCoupon.fromJson(data));
-    } else {
-      box.write("applyCoupon", false);
-      return Left(jsonDecode(response.body)["message"]);
-    }
-  }
-
+  
   Future<Either<String, AllProducts>> fetchAllProduct() async {
     final response = await server.getRequest(
         endPoint: ApiList.allProducts,
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken());
+        headers: box.read('isLogedIn') == true
+    ? AppServer.getHttpHeadersWithToken()
+    : AppServer.getAuthHeaders());
 
     if (response.statusCode == 200) {
       final data = response.data;
@@ -377,9 +303,9 @@ class RemoteServices {
     final response = await server.getRequest(
         endPoint: "",
         // "${ApiList.brands}?status=5",
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken());
+        headers: box.read('isLogedIn') == true
+    ? AppServer.getHttpHeadersWithToken()
+    : AppServer.getAuthHeaders());
     if (response.statusCode == 200) {
       final data = response.data;
       return Right(BrandModel.fromJson(data));
@@ -391,9 +317,9 @@ class RemoteServices {
   Future<Either<String, ProductModel>> fetchCartProduct(String slug) async {
     final response = await server.getRequest(
         endPoint: "${ApiList.showCartProduct}/$slug",
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken());
+        headers: box.read('isLogedIn') == true
+    ? AppServer.getHttpHeadersWithToken()
+    : AppServer.getAuthHeaders());
 
     if (response.statusCode == 200) {
       final data = response.data;
@@ -402,68 +328,5 @@ class RemoteServices {
       return const Left("Something went wrong");
     }
   }
-
-  Future<Either<String, PaymentMethodModel>> fetchPaymentMethods() async {
-    final response = await server.getRequest(
-        endPoint: ApiList.paymentGateway,
-        headers: AppServer.getHttpHeadersWithToken());
-    if (response.statusCode == 200) {
-      final data = response.data;
-      return Right(PaymentMethodModel.fromJson(data));
-    } else {
-      return const Left("Something went wrong");
-    }
-  }
-
-  Future<Either<String, AreaShippingModel>> fetchShippingArea() async {
-    final response = await server.getRequest(
-        endPoint: ApiList.areaWiseShipping,
-        headers: box.read('isLogedIn') == false
-            ? AppServer.getAuthHeaders()
-            : AppServer.getHttpHeadersWithToken());
-    if (response.statusCode == 200) {
-      final data = response.data;
-      return Right(AreaShippingModel.fromJson(data));
-    } else {
-      return const Left("Something went wrong");
-    }
-  }
-
-  confirmOrder({
-    required double subTotal,
-    required double shippingCharge,
-    required double tax,
-    required double total,
-    required int shippingId,
-    required int billingId,
-    required int outletId,
-    required int couponId,
-    required int orderType,
-    required int source,
-    required int paymentMethod,
-    required String products,
-    required double discount,
-  }) async {
-    var dio = Dio(
-      await getBasseOptionsWithToken(),
-    );
-
-    final response = await dio.post(ApiList.confirmOrder, data: {
-      "subtotal": subTotal,
-      "shipping_charge": shippingCharge,
-      "tax": tax,
-      "total": total,
-      "discount": discount,
-      "shipping_id": shippingId,
-      "billing_id": billingId,
-      "outlet_id": outletId,
-      "coupon_id": couponId,
-      "order_type": orderType,
-      "source": source,
-      "payment_method": paymentMethod,
-      "products": products,
-    });
-
-    return response;
-  }
+  
 }

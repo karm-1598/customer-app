@@ -6,7 +6,6 @@ import 'package:shopperz/app/modules/home/controller/flash_sale_controller.dart'
 import 'package:shopperz/app/modules/home/controller/product_section_controller.dart';
 import 'package:shopperz/app/modules/home/controller/promotion_controller.dart';
 import 'package:shopperz/app/modules/home/controller/slider_controller.dart';
-import 'package:shopperz/app/modules/wishlist/controller/wishlist_controller.dart';
 
 class HomeBindings extends Bindings {
   @override
@@ -16,7 +15,6 @@ class HomeBindings extends Bindings {
     Get.lazyPut(() => ProductSectionController());
     Get.lazyPut(() => PromotionalController());
     Get.lazyPut(() => CartController());
-    Get.lazyPut(() => WishlistController());
     Get.lazyPut(() => BrandController());
     Get.lazyPut(() => FlashSaleControlelr());
   }

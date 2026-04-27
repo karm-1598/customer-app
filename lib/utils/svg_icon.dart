@@ -14,7 +14,7 @@ class SvgIcon {
   static const moreCircle = "assets/icons/more_circle.svg";
   static const String  forward = 'assets/icons/forward.svg';
 
-  static String get appLogo => 'assets/images/logo_icon.svg';
+  static String get appLogo => 'assets/images/logo2.svg';
   static String get logo => 'assets/images/logo.svg';
   // static String get logo => 'assets/images/logo2.svg';
   static String get home => 'assets/icons/home.svg';
@@ -75,4 +75,7 @@ class SvgIcon {
   static String get delete => 'assets/icons/delete.svg';
   static String get thik => 'assets/icons/thik.svg';
   static String get thikCircle => 'assets/icons/tick-circle.svg';
+  static String get notes => 'assets/icons/notes.svg';
+  static String get outstanding => 'assets/icons/outstanding.svg';
+  static String get group => 'assets/icons/group.svg';
 }

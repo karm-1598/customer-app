@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shopperz/app/apiServices/common_method.dart';
 import 'package:shopperz/app/apiServices/common_widget.dart';
@@ -17,8 +18,9 @@ class LoginControllers extends GetxController {
   RxBool isError = false.obs;
   RxString error = "".obs;
   RxList<Customer> customerList = <Customer>[].obs;
+  final box=GetStorage();
 
-  login({required String email, required String password, required String deviceType, String? deviceID, required BuildContext context}) async {
+  Future<void> login({required String email, required String password, required String deviceType, String? deviceID, required BuildContext context}) async {
     isLoading(true);
     isError(false);
     error("");
@@ -26,7 +28,6 @@ class LoginControllers extends GetxController {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = await FirebaseMessaging.instance.getToken();
       deviceID = token.toString();
-      print(deviceID);
       getAPI(
           methodName: ApiList.login,
           param: {
@@ -44,7 +45,14 @@ class LoginControllers extends GetxController {
                 String userDataString = jsonEncode(signInModel.customer);
                 prefs.setString(SharedPrefrenceData.customerData, userDataString);
                 setUserData(signInModel.customer);
+                List<dynamic> tempList=valueMap['customer'];
+                Map<String, dynamic> tempMap=tempList[0];
                 isLoading(false);
+                box.write('isLogedIn', true);
+                box.write('email', email);
+                box.write('mobileNo', tempMap['MobileNumber']);
+                box.write('company', tempMap['UserName']);
+                box.write('customerId', tempMap['customerId']);
                 // print(AppConstants.userName);
                 final navController = Get.put(NavbarController());
                 Get.to(() => const NavBarView());

@@ -127,16 +127,22 @@ class _BrandsProductCategoryListScreenState extends State<BrandsProductCategoryL
                                           child: Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
                                               child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                                                CachedNetworkImage(
-                                                    imageUrl: controller.brandProductList[index].image,
-                                                    placeholder: (context, url) => const LoadingWidget(),
-                                                    errorWidget: (context, url, error) => Image.asset(AppImages.errorImages, fit: BoxFit.cover),
-                                                    imageBuilder: (context, imageProvider) => Container(
-                                                        height: 140,
-                                                        decoration: BoxDecoration(
-                                                            color: AppColor.whiteColor,
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            image: DecorationImage(image: imageProvider, fit: BoxFit.fill)))),
+                                                AspectRatio(
+                                                  aspectRatio: 1,
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    child: CachedNetworkImage(
+                                                        imageUrl: controller.brandProductList[index].image,
+                                                        placeholder: (context, url) => const LoadingWidget(),
+                                                        errorWidget: (context, url, error) => Image.asset(AppImages.errorImages, fit: BoxFit.cover),
+                                                        imageBuilder: (context, imageProvider) => Container(
+                                                            height: 140,
+                                                            decoration: BoxDecoration(
+                                                                color: AppColor.whiteColor,
+                                                                borderRadius: BorderRadius.circular(5),
+                                                                image: DecorationImage(image: imageProvider, fit: BoxFit.fill)))),
+                                                  ),
+                                                ),
                                                 const SizedBox(height: 10),
                                                 TextWidget(
                                                     text: controller.brandProductList[index].manufacturerName.toString(),

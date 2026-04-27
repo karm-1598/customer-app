@@ -5,10 +5,8 @@ import 'package:get/get.dart';
 import 'package:shopperz/app/modules/auth/controller/auth_controler.dart';
 import 'package:shopperz/app/modules/auth/views/sign_in.dart';
 import 'package:shopperz/app/modules/cart/controller/cart_controller.dart';
+import 'package:shopperz/app/modules/cart/views/guest_cart_confirm.dart';
 import 'package:shopperz/app/modules/cart/widgets/cart_item.dart';
-import 'package:shopperz/app/modules/product_details/controller/product_details_controller.dart';
-import 'package:shopperz/app/modules/shipping/views/shipping_information_screen.dart';
-import 'package:shopperz/main.dart';
 import 'package:shopperz/utils/images.dart';
 import 'package:shopperz/widgets/devider.dart';
 import 'package:shopperz/widgets/primary_button.dart';
@@ -18,22 +16,38 @@ import '../../../../config/theme/app_color.dart';
 import '../../../../widgets/custom_snackbar.dart';
 
 class CartScreen extends StatefulWidget {
-  CartScreen({super.key});
+  const CartScreen({super.key});
 
   @override
   State<CartScreen> createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
-  final cartController = Get.put(CartController());
+  final cartController = Get.isRegistered<CartController>() 
+    ? Get.find<CartController>() 
+    : Get.put(CartController());
 
   final authController = Get.put(AuthController());
 
-  final productDetailsController = Get.put(ProductDetailsController());
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if(cartController.isLoggedIn){
+      cartController.getWishlistProducts();
+      cartController.getAddressByEmail();
+    }else{
+      cartController.loadGuestCart();
+      print("+++++++ ${cartController.wishlistProducts.map((e) => e.toJson()).toList()}");
+    }
+  });
+
+    
+  }
 
   @override
   void dispose() {
-    productDetailsController.resetProductState();
     super.dispose();
   }
 
@@ -69,144 +83,134 @@ class _CartScreenState extends State<CartScreen> {
               leadingWidth: double.infinity,
             ),
           ),
-          body: Stack(
+          body: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.only(top: 16.h, left: 16.w, right: 16.w),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Obx(
-                        () => cartController.cartItems.isEmpty
-                            ? Padding(
-                                padding: EdgeInsets.only(top: 60.h),
-                                child: Center(
-                                  child: Image.asset(
-                                    AppImages.emptyIcon,
-                                    height: 300.h,
-                                    width: 300.w,
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                itemCount: cartController.cartItems.length,
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  final cartItem =
-                                      cartController.cartItems[index];
-                                  return Padding(
-                                    padding: EdgeInsets.only(top: 16.h),
-                                    child: Obx(
-                                      () => CartWidget(
-                                        productImage:
-                                            cartItem.product.data!.image,
-                                        title: cartItem.product.data!.name,
-                                        finalVariation:
-                                            cartItem.finalVariationString,
-                                        currentPrice: cartItem
-                                            .variationCurrencyPrice
-                                            .toString(),
-                                        discountPrice: cartItem
-                                            .variationOldCurrencyPrice
-                                            .toString(),
-                                        decrement: () {
-                                          cartController.decrementItem(
-                                              cartController.cartItems[index]);
-                                        },
-                                        isOffer: cartItem.product.data!.isOffer,
-                                        decrementIconvalue:
-                                            cartController.totalItems,
-                                        quantity: cartController
-                                            .cartItems[index].quantity
-                                            .toString(),
-                                        increment: () {
-                                          cartController.incrementItem(
-                                              cartController.cartItems[index]);
-                                        },
-                                        remove: () {
-                                          cartController.removeFromCart(
-                                              cartController.cartItems[index]);
-                                        },
-                                        stock: cartItem.stock,
-                                        incrementValue: cartItem.quantity.value,
-                                      ),
-                                    ),
-                                  );
-                                }),
+              cartController.isLoggedIn? Container(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                child: Row(
+                  children: [
+                    Text('Ship to'),
+                    Spacer(),
+                    Obx(() => SizedBox(
+                      height: 50,
+                      width: 250,
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: cartController.selectedAddress.value.isEmpty 
+                        ? null 
+                        : cartController.selectedAddress.value,
+                        items: cartController.addressList.map((address) => DropdownMenuItem<String>( 
+                          value: address['company'] as String, 
+                          child: TextWidget(
+                            text: address['company'].toString(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ), 
+                        )).toList(),
+                        onChanged: (String? value) {
+                          cartController.selectedAddress.value = value as String;
+                        },
                       ),
-                      SizedBox(
-                        height: 164.h,
-                      )
-                    ],
-                  ),
+                    )),
+                  ],
                 ),
-              ),
-              Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const DeviderWidget(),
-                      SizedBox(height: 16.h),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            TextWidget(
-                              text: 'Subtotal'.tr,
-                              color: AppColor.textColor,
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
+              ):SizedBox.shrink(),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 16.w, right: 16.w),
+                      child: Obx(() {
+                        if (cartController.wishlistProducts.isEmpty) {
+                          return Center(
+                            child: Image.asset(
+                              AppImages.emptyIcon,
+                              height: 250.h,
                             ),
-                            Obx(
-                              () => TextWidget(
-                                text:
-                                    '${authController.currency}${cartController.totalPrice.toStringAsFixed(2)}',
-                                color: AppColor.textColor,
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w600,
+                          );
+                        }
+                
+                        return ListView.builder(
+                          padding: EdgeInsets.only(top: 16.h, bottom: 180.h),
+                          itemCount: cartController.wishlistProducts.length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: EdgeInsets.only(top: 16.h),
+                              child: RepaintBoundary(
+                                child: CartWidget(item: cartController.wishlistProducts[index], controller: cartController)
                               ),
-                            )
+                            );
+                          },
+                        );
+                      }),
+                    ),
+                
+                    /// Bottom Checkout Section
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        color: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 16.w,),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const DeviderWidget(),
+                            SizedBox(height: 12.h),
+                            // Row(
+                            //   mainAxisAlignment:
+                            //       MainAxisAlignment.spaceBetween,
+                            //   children: [
+                            //     TextWidget(
+                            //       text: 'Subtotal'.tr,
+                            //       fontSize: 16.sp,
+                            //       fontWeight: FontWeight.w600,
+                            //     ),
+                            //     Obx(() => TextWidget(
+                            //           text:
+                            //               '${authController.currency}${cartController.totalPrice.toStringAsFixed(2)}',
+                            //           fontSize: 16.sp,
+                            //           fontWeight: FontWeight.w600,
+                            //         )),
+                            //   ],
+                            // ),
+                            
+                            SizedBox(height: 16.h),
+                            PrimaryButton(
+                              text: 'Procced to Checkout',
+                              onTap: () {
+                                if (cartController.wishlistProducts.isEmpty) {
+                                  customSnackbar(
+                                    "ERROR".tr,
+                                    "Your cart is empty",
+                                    AppColor.error,
+                                  );
+                                } else {
+                                  if (cartController.isLoggedIn) {
+                                    cartController.addQuatation();
+                                  } else {
+                                    Get.to(() => GuestCartConfirm());
+                                  }
+                                }
+                              },
+                            ),
+                            // SizedBox(height: 12.h),
+                            // TextWidget(
+                            //   text:
+                            //       'Shipping, Taxes & Discount Calculate at Checkout',
+                            //   fontSize: 12.sp,
+                            //   fontWeight: FontWeight.w500,
+                            // ),
                           ],
                         ),
                       ),
-                      SizedBox(height: 16.h),
-                      InkWell(
-                        onTap: () {
-                          if (cartController.cartItems.isEmpty) {
-                            customSnackbar(
-                              "ERROR".tr,
-                              "Your cart is empty",
-                              AppColor.error,
-                            );
-                          } else {
-                            Get.to(() => box.read("isLogedIn") != false
-                                ? const ShippingInformationScreen()
-                                : const SignInScreen());
-                          }
-                        },
-                        child: const PrimaryButton(
-                          text: 'Procced to Checkout',
-                        ),
-                      ),
-                      SizedBox(height: 12.h),
-                      TextWidget(
-                        text:
-                            'Shipping, Taxes & Discount Calculate at Checkout',
-                        color: AppColor.textColor,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      SizedBox(height: 40.h),
-                    ],
-                  ),
-                ],
-              )
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
+
         ),
       ),
     );

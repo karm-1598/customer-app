@@ -1,222 +1,155 @@
 class OrderHistoryModel {
-  List<Data>? data;
-  Links? links;
-  Meta? meta;
+  List<OrderHistory>? orderHistory;
 
-  OrderHistoryModel({this.data, this.links, this.meta});
+  OrderHistoryModel({this.orderHistory});
 
   OrderHistoryModel.fromJson(Map<String, dynamic> json) {
-    if (json['data'] != null) {
-      data = <Data>[];
-      json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+    if (json['orderHistory'] != null) {
+      orderHistory = <OrderHistory>[];
+      json['orderHistory'].forEach((v) {
+        orderHistory!.add(new OrderHistory.fromJson(v));
       });
     }
-    links = json['links'] != null ? new Links.fromJson(json['links']) : null;
-    meta = json['meta'] != null ? new Meta.fromJson(json['meta']) : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.data != null) {
-      data['data'] = this.data!.map((v) => v.toJson()).toList();
-    }
-    if (this.links != null) {
-      data['links'] = this.links!.toJson();
-    }
-    if (this.meta != null) {
-      data['meta'] = this.meta!.toJson();
+    if (this.orderHistory != null) {
+      data['orderHistory'] = this.orderHistory!.map((v) => v.toJson()).toList();
     }
     return data;
   }
 }
 
-class Data {
-  int? id;
-  String? orderSerialNo;
-  int? userId;
-  String? totalAmountPrice;
-  String? totalCurrencyPrice;
-  int? paymentStatus;
-  int? status;
-  String? statusName;
-  int? orderItems;
-  String? orderDatetime;
-  User? user;
-
-  Data(
-      {this.id,
-      this.orderSerialNo,
-      this.userId,
-      this.totalAmountPrice,
-      this.totalCurrencyPrice,
-      this.paymentStatus,
-      this.status,
-      this.statusName,
-      this.orderItems,
-      this.orderDatetime,
-      this.user});
-
-  Data.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    orderSerialNo = json['order_serial_no'];
-    userId = json['user_id'];
-    totalAmountPrice = json['total_amount_price'];
-    totalCurrencyPrice = json['total_currency_price'];
-    paymentStatus = json['payment_status'];
-    status = json['status'];
-    statusName = json['status_name'];
-    orderItems = json['order_items'];
-    orderDatetime = json['order_datetime'];
-    user = json['user'] != null ? new User.fromJson(json['user']) : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['order_serial_no'] = this.orderSerialNo;
-    data['user_id'] = this.userId;
-    data['total_amount_price'] = this.totalAmountPrice;
-    data['total_currency_price'] = this.totalCurrencyPrice;
-    data['payment_status'] = this.paymentStatus;
-    data['status'] = this.status;
-    data['status_name'] = this.statusName;
-    data['order_items'] = this.orderItems;
-    data['order_datetime'] = this.orderDatetime;
-    if (this.user != null) {
-      data['user'] = this.user!.toJson();
-    }
-    return data;
-  }
-}
-
-class User {
-  int? id;
-  String? name;
-  String? phone;
+class OrderHistory {
+  String? orderId;
+  String? orderDate;
+  String? companyName;
   String? email;
-  String? username;
-  String? balance;
-  String? currencyBalance;
-  String? image;
-  int? roleId;
-  String? countryCode;
-  int? order;
-  String? createDate;
-  String? updateDate;
+  String? address1;
+  String? address2;
+  String? address3;
+  String? city;
+  String? mobileNumber;
+  String? totalPrice;
+  String? totalVat;
+  String? totalAmount;
+  List<Items>? items;
 
-  User(
-      {this.id,
-      this.name,
-      this.phone,
+  OrderHistory(
+      {this.orderId,
+      this.orderDate,
+      this.companyName,
       this.email,
-      this.username,
-      this.balance,
-      this.currencyBalance,
-      this.image,
-      this.roleId,
-      this.countryCode,
-      this.order,
-      this.createDate,
-      this.updateDate});
+      this.address1,
+      this.address2,
+      this.address3,
+      this.city,
+      this.mobileNumber,
+      this.totalPrice,
+      this.totalVat,
+      this.totalAmount,
+      this.items});
 
-  User.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    phone = json['phone'];
-    email = json['email'];
-    username = json['username'];
-    balance = json['balance'];
-    currencyBalance = json['currency_balance'];
+  OrderHistory.fromJson(Map<String, dynamic> json) {
+    orderId = json['OrderId'];
+    orderDate = json['OrderDate'];
+    companyName = json['CompanyName'];
+    email = json['Email'];
+    address1 = json['Address1'];
+    address2 = json['Address2'];
+    address3 = json['Address3'];
+    city = json['City'];
+    mobileNumber = json['MobileNumber'];
+    totalPrice = json['TotalPrice'];
+    totalVat = json['TotalVat'];
+    totalAmount = json['TotalAmount'];
+    if (json['items'] != null) {
+      items = <Items>[];
+      json['items'].forEach((v) {
+        items!.add(new Items.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['OrderId'] = this.orderId;
+    data['OrderDate'] = this.orderDate;
+    data['CompanyName'] = this.companyName;
+    data['Email'] = this.email;
+    data['Address1'] = this.address1;
+    data['Address2'] = this.address2;
+    data['Address3'] = this.address3;
+    data['City'] = this.city;
+    data['MobileNumber'] = this.mobileNumber;
+    data['TotalPrice'] = this.totalPrice;
+    data['TotalVat'] = this.totalVat;
+    data['TotalAmount'] = this.totalAmount;
+    if (this.items != null) {
+      data['items'] = this.items!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Items {
+  String? nopProductId;
+  String? orderDetailID;
+  String? itemCode;
+  String? itemName;
+  String? salePrice;
+  String? itemQty;
+  String? unit;
+  String? newQty;
+  String? send;
+  String? orgImage;
+  String? orderStatus;
+  String? image;
+
+  Items(
+      {this.nopProductId,
+      this.orderDetailID,
+      this.itemCode,
+      this.itemName,
+      this.salePrice,
+      this.itemQty,
+      this.unit,
+      this.newQty,
+      this.send,
+      this.orgImage,
+      this.orderStatus,
+      this.image});
+
+  Items.fromJson(Map<String, dynamic> json) {
+    nopProductId = json['NopProductId'];
+    orderDetailID = json['OrderDetailID'];
+    itemCode = json['ItemCode'];
+    itemName = json['ItemName'];
+    salePrice = json['SalePrice'];
+    itemQty = json['ItemQty'];
+    unit = json['Unit'];
+    newQty = json['newQty'];
+    send = json['send'];
+    orgImage = json['orgImage'];
+    orderStatus = json['OrderStatus'];
     image = json['image'];
-    roleId = json['role_id'];
-    countryCode = json['country_code'];
-    order = json['order'];
-    createDate = json['create_date'];
-    updateDate = json['update_date'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['phone'] = this.phone;
-    data['email'] = this.email;
-    data['username'] = this.username;
-    data['balance'] = this.balance;
-    data['currency_balance'] = this.currencyBalance;
+    data['NopProductId'] = this.nopProductId;
+    data['OrderDetailID'] = this.orderDetailID;
+    data['ItemCode'] = this.itemCode;
+    data['ItemName'] = this.itemName;
+    data['SalePrice'] = this.salePrice;
+    data['ItemQty'] = this.itemQty;
+    data['Unit'] = this.unit;
+    data['newQty'] = this.newQty;
+    data['send'] = this.send;
+    data['orgImage'] = this.orgImage;
+    data['OrderStatus'] = this.orderStatus;
     data['image'] = this.image;
-    data['role_id'] = this.roleId;
-    data['country_code'] = this.countryCode;
-    data['order'] = this.order;
-    data['create_date'] = this.createDate;
-    data['update_date'] = this.updateDate;
-    return data;
-  }
-}
-
-class Links {
-  String? first;
-  String? last;
-  String? prev;
-  String? next;
-
-  Links({this.first, this.last, this.prev, this.next});
-
-  Links.fromJson(Map<String, dynamic> json) {
-    first = json['first'];
-    last = json['last'];
-    prev = json['prev'];
-    next = json['next'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['first'] = this.first;
-    data['last'] = this.last;
-    data['prev'] = this.prev;
-    data['next'] = this.next;
-    return data;
-  }
-}
-
-class Meta {
-  int? currentPage;
-  int? from;
-  int? lastPage;
-  String? path;
-  int? perPage;
-  int? to;
-  int? total;
-
-  Meta(
-      {this.currentPage,
-      this.from,
-      this.lastPage,
-      this.path,
-      this.perPage,
-      this.to,
-      this.total});
-
-  Meta.fromJson(Map<String, dynamic> json) {
-    currentPage = json['current_page'];
-    from = json['from'];
-    lastPage = json['last_page'];
-    path = json['path'];
-    perPage = json['per_page'];
-    to = json['to'];
-    total = json['total'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['current_page'] = this.currentPage;
-    data['from'] = this.from;
-    data['last_page'] = this.lastPage;
-    data['path'] = this.path;
-    data['per_page'] = this.perPage;
-    data['to'] = this.to;
-    data['total'] = this.total;
     return data;
   }
 }

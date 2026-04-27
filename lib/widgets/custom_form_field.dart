@@ -5,12 +5,15 @@ import '../config/theme/app_color.dart';
 
 class CustomFormField extends StatefulWidget {
   const CustomFormField(
-      {super.key, this.controller, this.validator, this.obsecure, this.keyboardType});
+      {super.key, this.controller, this.validator, this.obsecure, this.keyboardType, this.trailingIcon, this.title, this.onChanged});
 
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final bool? obsecure;
+  final Widget? trailingIcon;
   final TextInputType? keyboardType;
+  final String? title;
+  final Function(String)? onChanged;
 
   @override
   State<CustomFormField> createState() => _CustomFormFieldState();
@@ -21,6 +24,7 @@ class _CustomFormFieldState extends State<CustomFormField> {
   Widget build(BuildContext context) {
     return SizedBox(
       child: TextFormField(
+        
         style: GoogleFonts.urbanist(
             color: AppColor.textColor,
             fontWeight: FontWeight.w500,
@@ -30,11 +34,15 @@ class _CustomFormFieldState extends State<CustomFormField> {
         cursorColor: AppColor.textColor,
         controller: widget.controller,
         keyboardType: widget.keyboardType,
+        
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.zero,
+          contentPadding: EdgeInsets.symmetric(horizontal: 15.w,vertical: 10.h),
+          labelText: widget.title,
           prefix: SizedBox(
             width: 10.w,
           ),
+          suffixIcon: widget.trailingIcon,
+          
           border: OutlineInputBorder(
             borderSide: const BorderSide(color: AppColor.inactiveColor),
             borderRadius: BorderRadius.circular(8.r),
@@ -53,6 +61,7 @@ class _CustomFormFieldState extends State<CustomFormField> {
                   fontSize: 16.sp),
         ),
         validator: widget.validator,
+        onChanged: widget.onChanged,
       ),
     );
   }

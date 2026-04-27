@@ -9,7 +9,6 @@ import 'package:shopperz/app/modules/home/controller/all_popular_controller.dart
 import 'package:shopperz/app/modules/home/controller/popular_product_controller.dart';
 import 'package:shopperz/app/modules/home/model/popular_product.dart';
 import 'package:shopperz/app/modules/product/widgets/product.dart';
-import 'package:shopperz/app/modules/wishlist/controller/wishlist_controller.dart';
 import 'package:shopperz/widgets/appbar2.dart';
 import 'package:shopperz/widgets/textwidget.dart';
 import '../../../../config/theme/app_color.dart';
@@ -30,7 +29,6 @@ class ProductlistScreen extends StatefulWidget {
 class _ProductlistScreenState extends State<ProductlistScreen> {
   final allPopularController = Get.put(AllPopularControler());
   final allFlashController = Get.put(AllFlashController());
-  final wishListController = Get.find<WishlistController>();
   @override
   void initState() {
     widget.id == 5
@@ -153,27 +151,7 @@ class _ProductlistScreenState extends State<ProductlistScreen> {
                                   ),
                                 );
                               },
-                              wishlist: wishListController.favList
-                                          .contains(productList[index].id!) ||
-                                      productList[index].wishlist == true
-                                  ? true
-                                  : false,
-                              favTap: () async {
-                                if (productList[index].wishlist == true) {
-                                  await wishListController.toggleFavoriteFalse(
-                                      productList[index].id!);
-
-                                  wishListController
-                                      .showFavorite(productList[index].id!);
-                                }
-                                if (productList[index].wishlist == false) {
-                                  await wishListController.toggleFavoriteTrue(
-                                      productList[index].id!);
-
-                                  wishListController
-                                      .showFavorite(productList[index].id!);
-                                }
-                              },
+                              
                               productImage: productList[index].cover,
                               title: productList[index].name,
                               rating: productList[index].ratingStar,

@@ -142,27 +142,40 @@ class ContactDatabaseHelper {
 
   Future<int> insertCategory(Category contactModel) async {
     Database db = await database;
-    int result = await db.insert(categoryTable, contactModel.toJson());
+    int result = await db.insert(
+      categoryTable, 
+      contactModel.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace, 
+    );
     return result;
   }
 
   Future<int> insertBrandCategory(Manufacturer contactModel) async {
     Database db = await database;
-    int result = await db.insert(brandTable, contactModel.toJson());
-    print(result);
+    int result = await db.insert(
+      brandTable, 
+      contactModel.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
     return result;
   }
   Future<int> insertBrandProduct(BrandProduct contactModel) async {
     Database db = await database;
-    // print("insert brand product");
-
-    int result = await db.insert(brandProductTable, contactModel.toJson());
-    print("insert brand $result");
+    int result = await db.insert(
+      brandProductTable, 
+      contactModel.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
     return result;
   }
+
   Future<int> insertProduct(Product contactModel) async {
     Database db = await database;
-    int result = await db.insert(productTable, contactModel.toJson());
+    int result = await db.insert(
+      productTable, 
+      contactModel.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
     return result;
   }
   // Future<int> insertInterestedProduct(CustomerItems contactModel) async {
@@ -259,25 +272,6 @@ class ContactDatabaseHelper {
       categoryTable,
     );
 
-    var a1 = await db.delete(
-      productTable,
-    );
-    var a2 = await db.delete(
-      recentViewTable,
-    );
-    // var a3 = await db.delete(
-    //   brandTable,
-    // );
-    // var a4 = await db.delete(
-    //   brandProductTable,
-    // );
-    var a5 = await db.delete(
-      recentBrandViewTable,
-    );
-    // var a6 = await db.delete(
-    //   interestedProductTable,
-    // );
-    toast("All record deleted.$a,$a1,$a2,$a5");
   }
 
   Future<int> insertRecentProduct(Product model) async {

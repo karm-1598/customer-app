@@ -10,9 +10,15 @@ import 'package:shopperz/utils/svg_icon.dart';
 
 import '../../../../config/theme/app_color.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  
   @override
   Widget build(BuildContext context) {
     Timer(const Duration(seconds: 3), () {
@@ -30,7 +36,7 @@ class SplashScreen extends StatelessWidget {
         backgroundColor: AppColor.primaryBackgroundColor,
         body: Center(
           child: SvgPicture.asset(
-            SvgIcon.logo,
+            SvgIcon.appLogo,
             height: 50.h,
           ),
         ),

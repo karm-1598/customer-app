@@ -2,20 +2,14 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shopperz/app/modules/auth/controller/otp_controller.dart';
-import 'package:shopperz/app/modules/auth/views/forget_otp_screen.dart';
-import 'package:shopperz/app/modules/auth/views/otp_screen.dart';
 import 'package:shopperz/app/modules/auth/views/reset_password.dart';
-import 'package:shopperz/app/modules/auth/views/sign_in.dart';
 import 'package:shopperz/app/modules/navbar/controller/navbar_controller.dart';
 import 'package:shopperz/app/modules/navbar/views/navbar_view.dart';
 import 'package:shopperz/config/theme/app_color.dart';
-import 'package:shopperz/data/model/country_code_model.dart';
 import 'package:shopperz/data/model/setting_model.dart';
-import 'package:shopperz/data/remote_services/remote_services.dart';
 import 'package:shopperz/main.dart';
 import 'package:shopperz/utils/api_list.dart';
 import 'package:shopperz/widgets/custom_snackbar.dart';
@@ -26,9 +20,9 @@ class AuthController extends GetxController {
 
   final isLoading = false.obs;
 
-  CountryCodeModel? countryCodeModel;
+  // CountryCodeModel? countryCodeModel;
   SettingModel? settingModel;
-  RxList<CountryCodeModel> countryCodeMap = <CountryCodeModel>[].obs;
+  // RxList<CountryCodeModel> countryCodeMap = <CountryCodeModel>[].obs;
   RxList<SettingModel> settingMap = <SettingModel>[].obs;
 
   final nameController = TextEditingController();
@@ -71,29 +65,29 @@ class AuthController extends GetxController {
   }
 
   getSetting() async {
-    settingModel = await RemoteServices.getSetting();
+    // settingModel = await RemoteServices.getSetting();
 
-    settingMap.add(settingModel!);
+    // settingMap.add(settingModel!);
 
     refresh();
 
-    countryCode = settingModel!.data?.companyCallingCode.toString() ?? '';
-    emailVerification =
-        settingModel!.data?.siteEmailVerification.toString() ?? '';
-    phoneVerification =
-        settingModel!.data?.sitePhoneVerification.toString() ?? '';
-    cashOnDelivery = settingModel!.data?.siteCashOnDelivery.toString() ?? '';
-    onlinePayment =
-        settingModel!.data?.siteOnlinePaymentGateway.toString() ?? '';
-    shippingMethod = settingModel!.data?.shippingSetupMethod.toString() ?? '';
-    currency = settingModel!.data?.siteDefaultCurrencySymbol.toString() ?? '';
+    // countryCode = settingModel!.data?.companyCallingCode.toString() ?? '';
+    // emailVerification =
+    //     settingModel!.data?.siteEmailVerification.toString() ?? '';
+    // phoneVerification =
+    //     settingModel!.data?.sitePhoneVerification.toString() ?? '';
+    // cashOnDelivery = settingModel!.data?.siteCashOnDelivery.toString() ?? '';
+    // onlinePayment =
+    //     settingModel!.data?.siteOnlinePaymentGateway.toString() ?? '';
+    // shippingMethod = settingModel!.data?.shippingSetupMethod.toString() ?? '';
+    // currency = settingModel!.data?.siteDefaultCurrencySymbol.toString() ?? '';
     refresh();
   }
 
   getCountryCode() async {
-    countryCodeModel = await RemoteServices.getCountryCode();
+    // countryCodeModel = await RemoteServices.getCountryCode();
 
-    countryCodeMap.add(countryCodeModel!);
+    // countryCodeMap.add(countryCodeModel!);
 
     refresh();
   }
@@ -196,9 +190,9 @@ class AuthController extends GetxController {
             jsonDecode(response.body)["message"].toString().tr,
             AppColor.success);
         if (emailVerification == '5') {
-          Get.to(() => ForgetOTPScreen(
-                emailOrPhone: email,
-              ));
+          Get.to(() => null //ForgetOTPScreen(
+                //emailOrPhone: email,)
+              );
         } else if (emailVerification == '10') {
           Get.to(() => ResetPasswordScreen(
                 emailOrPhone: email,
@@ -233,10 +227,11 @@ class AuthController extends GetxController {
             AppColor.success);
 
         if (phoneVerification == '5') {
-          Get.to(() => ForgetOTPScreen(
-                emailOrPhone: phone,
-                countryCode: countryCode,
-              ));
+          Get.to(() =>null // ForgetOTPScreen(
+          //       emailOrPhone: phone,
+          //       countryCode: countryCode,
+          //     )
+          );
         } else if (phoneVerification == '10') {
           Get.to(() => ResetPasswordScreen(
                 emailOrPhone: phone,
@@ -276,11 +271,14 @@ class AuthController extends GetxController {
 
         otpController.sendOTPWithEmail(email: emailController.text);
         if (emailVerification == '5') {
-          Get.to(() => OTPScreen(
-                emailOrPhone: email,
-              ));
+          Get.to(() => null
+          // OTPScreen(
+          //       emailOrPhone: email,
+          //     )
+              );
         } else if (emailVerification == '10') {
-          Get.to(() => const SignInScreen());
+          Get.to(() => null //const SignInScreen()
+          );
         }
       } else {
         isLoading(false);
@@ -347,12 +345,15 @@ class AuthController extends GetxController {
             phone: phoneController.text, country_code: countryCode);
 
         if (phoneVerification == '5') {
-          Get.to(() => OTPScreen(
-                emailOrPhone: phone,
-                countryCode: countryCode,
-              ));
+          Get.to(() =>null
+          //  OTPScreen(
+          //       emailOrPhone: phone,
+          //       countryCode: countryCode,
+          //     )
+              );
         } else if (phoneVerification == '10') {
-          Get.to(() => const SignInScreen());
+          Get.to(() => null //const SignInScreen()
+          );
         }
       } else {
         isLoading(false);
@@ -414,6 +415,7 @@ class AuthController extends GetxController {
 
       if (response.statusCode == 200) {
         isLoading(false);
+        print("linkkarm: $deviceID $deviceType");
         final token = jsonDecode(response.body)["token"];
         box.write('justToken', token);
         box.write("token", 'Bearer $token');

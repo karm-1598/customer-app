@@ -6,7 +6,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shopperz/app/modules/product_details/controller/product_details_controller.dart';
 import 'package:shopperz/app/modules/product_details/model/related_product.dart';
-import 'package:shopperz/app/modules/wishlist/model/fav_model.dart';
 import 'package:shopperz/config/theme/app_color.dart';
 import 'package:shopperz/utils/svg_icon.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -24,14 +23,12 @@ class CustomTabBar extends StatefulWidget {
     this.sectionModel,
     this.categoryWiseProduct,
     this.allProductModel,
-    this.favoriteItem,
     this.relatedProduct,
   });
   final category_product.Product? categoryWiseProduct;
   final section_product.Product? productModel;
   final section_product.Datum? sectionModel;
   final Datum? allProductModel;
-  final FavoriteItem? favoriteItem;
   final RelatedProduct? relatedProduct;
 
   @override
@@ -68,7 +65,6 @@ class _CustomTabBarState extends State<CustomTabBar>
     ReviewView(
       allProductModel: widget.allProductModel,
       categoryWiseProduct: widget.categoryWiseProduct,
-      favoriteItem: widget.favoriteItem,
       productModel: widget.productModel,
       relatedProduct: widget.relatedProduct,
       sectionModel: widget.sectionModel,
@@ -257,14 +253,12 @@ class ReviewView extends StatefulWidget {
     this.sectionModel,
     this.categoryWiseProduct,
     this.allProductModel,
-    this.favoriteItem,
     this.relatedProduct,
   });
   final category_product.Product? categoryWiseProduct;
   final section_product.Product? productModel;
   final section_product.Datum? sectionModel;
   final Datum? allProductModel;
-  final FavoriteItem? favoriteItem;
   final RelatedProduct? relatedProduct;
 
   @override
@@ -544,7 +538,6 @@ class _ReviewViewState extends State<ReviewView> {
                                                 widget.categoryWiseProduct
                                                     ?.slug ??
                                                 widget.allProductModel?.slug ??
-                                                widget.favoriteItem?.slug ??
                                                 widget.relatedProduct?.slug ??
                                                 "");
                                   });

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:shopperz/app/modules/order/controller/order_controller.dart';
@@ -20,16 +19,16 @@ class OrderHistoryScreen extends StatefulWidget {
 }
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
-  OrderController order = Get.put(OrderController());
+  final order = Get.isRegistered<OrderController>()? Get.find<OrderController>() :Get.put(OrderController());
 
   @override
-  void initState() {
-    order.loadMoreData();
-    super.initState();
-    if (box.read('isLogedIn') != false) {
-      order.getOrderHistory();
-    }
-  }
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    order.loadMoreData(); // called after widget is built
+  });
+  
+}
 
   @override
   void dispose() {
@@ -67,7 +66,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             child: RefreshIndicator(
               color: AppColor.primaryColor,
               onRefresh: () async {
-                if (box.read('isLogedIn') != false) {
+                if (box.read('isLogedIn') == true) {
                   order.resetState();
                   order.getOrderHistory();
                 }
@@ -81,14 +80,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     ),
                     Expanded(
                       child: Obx(
-                        () => order.orderHistoryList.isNotEmpty &&
-                                order.orderHistoryList.length > 0
+                        () => order.orderHistoryList.isNotEmpty 
                             ? ListView.builder(
                                 controller: order.scrollController,
                                 itemCount: order.orderHistoryList.length +
-                                    (order.hasMoreData == true ? 1 : 0),
-                                shrinkWrap: true,
-                                physics: const AlwaysScrollableScrollPhysics(),
+                                    (order.hasMoreData.value == true ? 1 : 0),
+                                physics: const BouncingScrollPhysics(),
+                                cacheExtent: 500,
                                 itemBuilder: (context, index) {
                                   if (index == order.orderHistoryList.length) {
                                     return Stack(
@@ -105,10 +103,14 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                       ],
                                     );
                                   }
-                                  return Padding(
-                                    padding: EdgeInsets.only(bottom: 16.h),
-                                    child: OrderWidget(
-                                        order: order.orderHistoryList[index]),
+                                  return RepaintBoundary(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(bottom: 16.h),
+                                      child: OrderWidget(
+                                          order: order.orderHistoryList[index],
+                                          controller: order,  
+                                        ),
+                                    ),
                                   );
                                 },
                               )

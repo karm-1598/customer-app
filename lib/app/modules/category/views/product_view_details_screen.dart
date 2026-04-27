@@ -6,15 +6,18 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:get/get.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:shopperz/app/apiServices/common_widget.dart';
 import 'package:shopperz/app/controller/category_controller.dart';
 import 'package:shopperz/app/modules/auth/controller/auth_controler.dart';
 import 'package:shopperz/app/modules/cart/controller/cart_controller.dart';
+import 'package:shopperz/app/modules/cart/model/cartmodel.dart';
 import 'package:shopperz/app/modules/cart/model/product_model.dart';
 import 'package:shopperz/app/modules/category/controller/category_wise_product_controller.dart';
 import 'package:shopperz/app/modules/navbar/controller/navbar_controller.dart';
 import 'package:shopperz/app/modules/navbar/views/navbar_view.dart';
 import 'package:shopperz/app/modules/product_details/controller/product_details_controller.dart';
+import 'package:shopperz/app/modules/category/views/product_option_screen.dart';
 import 'package:shopperz/model/product_details_view_model.dart';
 import 'package:shopperz/utils/images.dart';
 import 'package:shopperz/widgets/custom_snackbar.dart';
@@ -111,6 +114,68 @@ class _ProductViewDetailsScreenState extends State<ProductViewDetailsScreen> {
   //           widget.relatedProduct?.slug ?? widget.individualProduct?.slug ?? "");
   //   super.didChangeDependencies();
   // }
+
+  // ✅ Place these as class-level methods, OUTSIDE build()
+
+void _showAddToCartSheet() {
+  // Reset qty to 1 each time sheet opens
+  cartController.numOfItems.value = 1;
+
+  final product = _categoryControllers.productDetails[0];
+
+  Get.bottomSheet(
+    ProductOptionScreen(
+      product: product,                        // ✅ pass ProductDetails directly
+      cartController: cartController,
+      onConfirmAddToCart: _handleAddToCart,
+    ),
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    ignoreSafeArea: false,
+  );
+}
+
+Future<void> _handleAddToCart() async {
+  final product = _categoryControllers.productDetails[0];
+  final qty = cartController.numOfItems.value;
+  final customerId = cartController.box.read('customerId');
+
+  if (qty <= 0) {
+    customSnackbar("ERROR".tr, "Please select a quantity".tr, AppColor.error);
+    return;
+  }
+
+  if (cartController.isLoggedIn && customerId != null) {
+    // ✅ LOGGED IN → call insertWishlist API
+    // Angular: categoryService.insertWishlist(customerId, itemId, quantity, AttributeXml)
+    print('/////////////////////////////');
+    print(customerId.toString());
+    print(product.id);
+    print(qty);
+    await cartController.insertWishlistItem(
+      customerId: customerId.toString(),
+      itemId: product.id,
+      quantity: qty,
+      attributeXml: "0", // no variation system in this screen
+    );
+  } else {
+    // ✅ GUEST → save locally
+    // Angular: storage.set('guestUserItem', items)
+    final guestProduct = Product(
+      productId: product.id,
+      name: product.name,
+      quantity: qty.toString(),
+      image: product.image.isNotEmpty ? product.image[0] : '',
+      attributeImageUrl: product.image.isNotEmpty ? product.image[0] : '',
+      sku: product.sku,
+      unit: product.unit,
+      price: product.price,
+    );
+    cartController.addProductToGuestCart(guestProduct);
+    customSnackbar(
+        "SUCCESS".tr, "Product added to cart".tr, AppColor.success);
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,7 +203,7 @@ class _ProductViewDetailsScreenState extends State<ProductViewDetailsScreen> {
                       child: CircleAvatar(
                           backgroundColor: AppColor.primaryColor,
                           child: SvgPicture.asset(SvgIcon.catBag, height: 24.h, width: 24.w, color: AppColor.whiteColor))),
-                  cartController.totalItems > 0
+                  cartController.numOfItems.value > 0
                       ? Positioned(
                           top: 12.h,
                           right: 10.w,
@@ -149,8 +214,6 @@ class _ProductViewDetailsScreenState extends State<ProductViewDetailsScreen> {
                       : Container()
                 ])))),
         body: GetX<CategoryControllers>(
-          init: _categoryControllers,
-          initState: (_) {},
           builder: (controller) {
             if (controller.isOtherLoading.value) {
               return const LoadingWidget();
@@ -203,19 +266,63 @@ class _ProductViewDetailsScreenState extends State<ProductViewDetailsScreen> {
                         child:
                             
                             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          CachedNetworkImage(
-                              imageUrl:
-                                  isClicked
-                                      ? controller.productDetails[0].image[isSelected]
-                                      :
-                                  controller.productDetails[0].image[isSelected].toString(),
-                              imageBuilder: (context, imageProvider) => Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 15),
-                                  height: 300,
-                                  // width: 328.w,
-                                  decoration: BoxDecoration(
-                                    // color: AppColor.applyCouponColor,
-                                      borderRadius: BorderRadius.circular(5), image: DecorationImage(image: imageProvider, fit: BoxFit.fill)))),
+                          GestureDetector(
+                            onTap: (){
+                              showDialog(
+                                context: context,
+                                builder: (_)=>Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  child: Align(
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        PhotoView(
+                                          imageProvider: NetworkImage(controller.productDetails[0].image[isSelected].toString()),
+                                          minScale: PhotoViewComputedScale.contained,
+                                          maxScale: PhotoViewComputedScale.covered*3,
+                                          backgroundDecoration: BoxDecoration(
+                                            color: Colors.transparent,
+                                          ),
+                                        ),
+                                    
+                                        Positioned(
+                                          top: -10,
+                                          right: -10,
+                                          child: GestureDetector(
+                                          onTap: () => Get.back(),
+                                          child: CircleAvatar(
+                                            backgroundColor: Colors.red,
+                                            child: Icon(Icons.close, color: Colors.white,),
+                                          ),
+                                        ))
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              );
+                            },
+                            child: AspectRatio(
+                              aspectRatio: 3/4,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: CachedNetworkImage(
+                                    imageUrl:
+                                        isClicked
+                                            ? controller.productDetails[0].image[isSelected]
+                                            :
+                                        controller.productDetails[0].image[isSelected].toString(),
+                                    imageBuilder: (context, imageProvider) => Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 15),
+                                        height: 300,
+                                        // width: 328.w,
+                                        decoration: BoxDecoration(
+                                          // color: AppColor.applyCouponColor,
+                                            borderRadius: BorderRadius.circular(5), image: DecorationImage(image: imageProvider, fit: BoxFit.contain)))),
+                              ),
+                            ),
+                          ),
+                          
                           SizedBox(height: 15.h),
                           controller.productDetails[0].image.isEmpty
                               ? const SizedBox()
@@ -260,7 +367,7 @@ class _ProductViewDetailsScreenState extends State<ProductViewDetailsScreen> {
                             SizedBox(height: 5.h),
                             CustomText(textAlign: TextAlign.left, text: controller.productDetails[0].name, size: 16, weight: FontWeight.w600),
                             SizedBox(height: 8.h),
-                            CustomText(text: "₹ ${controller.productDetails[0].price.toString()}", size: 20, weight: FontWeight.bold),
+                            // CustomText(text: "₹ ${controller.productDetails[0].price.toString()}", size: 20, weight: FontWeight.bold),
                             SizedBox(height: 8.h),
                             // Row(children: [
                             //   RatingBarIndicator(
@@ -1252,74 +1359,68 @@ class _ProductViewDetailsScreenState extends State<ProductViewDetailsScreen> {
                                   icon: SvgIcon.bag,
                                   text: "Add To Cart".tr,
                                   buttonColor: AppColor.primaryColor,
-                                  onTap: () async {
-                                   
-  final ProductDetails product = controller.productDetails[0];
+                                  onTap: (){
+                                    print('Submitted ---------->>>>>>>>>>>>>>>>>>');
+                                   _showAddToCartSheet();
+  // final ProductDetails product = controller.productDetails[0];
 
-  // Build ProductModel directly from ProductDetails
-  final ProductModel productModel = ProductModel(
-    data: Data(
-      id: int.tryParse(product.id) ?? 0,
-      name: product.name,
-      slug: product.slug,
-      price: product.price,
-      currencyPrice: product.price,
-      oldPrice: product.price,
-      oldCurrencyPrice: product.price,
-      sku: product.sku,
-      unit: product.unit,
-      stock: 999, // your API has no stock field, default high
-      taxes: [],
-      reviews: [],
-      videos: [],
-      flashSale: false,
-      isOffer: false,
-      image: product.image.isNotEmpty ? product.image[0] : '',
-      images: product.image,
-      brandName: product.brandName,
-      packing: product.packing,
-      fullDescription: product.fullDescription,
-      shipping: Shipping(
-        shippingType: 10,
-        shippingCost: "0",
-        isProductQuantityMultiply: 10,
-      ),
-    ),
-  );
+  // // Build ProductModel directly from ProductDetails
+  // final ProductModel productModel = ProductModel(
+  //   data: Data(
+  //     id: int.tryParse(product.id) ?? 0,
+  //     name: product.name,
+  //     slug: product.slug,
+  //     price: product.price,
+  //     currencyPrice: product.price,
+  //     oldPrice: product.price,
+  //     oldCurrencyPrice: product.price,
+  //     sku: product.sku,
+  //     unit: product.unit,
+  //     stock: 999, // your API has no stock field, default high
+  //     taxes: [],
+  //     reviews: [],
+  //     videos: [],
+  //     flashSale: false,
+  //     isOffer: false,
+  //     image: product.image.isNotEmpty ? product.image[0] : '',
+  //     images: product.image,
+  //     brandName: product.brandName,
+  //     packing: product.packing,
+  //     fullDescription: product.fullDescription,
+  //     shipping: Shipping(
+  //       shippingType: 10,
+  //       shippingCost: "0",
+  //       isProductQuantityMultiply: 10,
+  //     ),
+  //   ),
+  // );
 
-  // Add to cart
-  cartController.addItem(
-    product: productModel,
-    variationId: 0,
-    variationStock: 999,
-    stock: 999,
-    sku: product.sku,
-    shippingAmount: "0",
-    finalVariation: "null",
-    taxJson: [],
-    totalTax: 0.0,
-    productVariationPrice: product.price,
-    productVariationOldPrice: product.price,
-    productVariationCurrencyPrice: product.price,
-    productVariationOldCurrencyPrice: product.price,
-    shipping: Shipping(
-      shippingType: 10,
-      shippingCost: "0",
-      isProductQuantityMultiply: 10,
-    ),
-    flatShippingCost: authController.settingModel?.data
-        ?.shippingSetupFlatRateWiseCost?.toString() ?? "0",
-  );
+  // // Add to cart
+  // cartController.addItem(
+  //   product: productModel,
+  //   variationId: 0,
+  //   variationStock: 999,
+  //   stock: 999,
+  //   sku: product.sku,
+  //   shippingAmount: "0",
+  //   finalVariation: "null",
+  //   taxJson: [],
+  //   totalTax: 0.0,
+  //   productVariationPrice: product.price,
+  //   productVariationOldPrice: product.price,
+  //   productVariationCurrencyPrice: product.price,
+  //   productVariationOldCurrencyPrice: product.price,
+  //   shipping: Shipping(
+  //     shippingType: 10,
+  //     shippingCost: "0",
+  //     isProductQuantityMultiply: 10,
+  //   ),
+  //   flatShippingCost: authController.settingModel?.data
+  //       ?.shippingSetupFlatRateWiseCost?.toString() ?? "0",
+  // );
 
-  cartController.calculateShippingCharge(
-    shippingMethodStatus: authController.shippingMethod,
-    shippingType: "10",
-    isProductQntyMultiply: "10",
-    flatShippingCharge: authController.settingModel?.data
-        ?.shippingSetupFlatRateWiseCost,
-  );
 
-  customSnackbar("SUCCESS".tr, "Product added to cart".tr, AppColor.success);
+  // customSnackbar("SUCCESS".tr, "Product added to cart".tr, AppColor.success);
 
                                       // if (productDetailsController.initialVariationModel.value.data != null &&
                                       //     productDetailsController.initialVariationModel.value.data!.length > 0) {
@@ -1338,8 +1439,7 @@ class _ProductViewDetailsScreenState extends State<ProductViewDetailsScreen> {
                                       //         "tax_rate": double.tryParse(e.taxRate.toString()),
                                       //         'tax_amount': double.tryParse(cartController.totalTax.toString()),
                                       //       };
-                                      //     }).toList();
-                                    
+                                      //     }).toList();                                 
                                       //     cartController.addItem(
                                       //         variationStock: productDetailsController.variationsStock.value.toInt(),
                                       //         product: productDetailsController.productModel.value,
@@ -1419,7 +1519,8 @@ class _ProductViewDetailsScreenState extends State<ProductViewDetailsScreen> {
                                   //       } else {}
                                   //     }
                                   // }),
-          })),
+          }
+          )),
                             // InkWell(
                             //     onTap: () async {
                             //       // if (box.read('isLogedIn') != false) {

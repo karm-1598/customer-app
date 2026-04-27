@@ -313,7 +313,7 @@ class AppServer {
 
   static Map<String, String> _getHttpHeaders() {
     Map<String, String> headers = Map<String, String>();
-    headers['Authorization'] = initClass();
+    headers['Authorization'] = initClass() ??'';
     headers['x-api-key'] = ApiList.licenseCode.toString();
     headers['Content-Type'] = 'application/json';
     headers['Accept'] = "application/json, text/plain, */*";
@@ -342,9 +342,9 @@ class AppServer {
 
   static Map<String, String> getHttpHeadersWithToken() {
     final store = GetStorage();
-    var token = store.read('token');
+    String token = store.read('token').toString();
     Map<String, String> headers = Map<String, String>();
-    headers['Authorization'] = token;
+    headers['Authorization'] = token??'';
     headers['x-api-key'] = ApiList.licenseCode.toString();
     headers['Content-Type'] = 'application/json';
     headers['Accept'] = "application/json, text/plain, */*";

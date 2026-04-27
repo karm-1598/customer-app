@@ -62,7 +62,6 @@ class _ProductCategoryListScreenState extends State<ProductCategoryListScreen> {
             body:
                 // Obx(() {
                 GetX<CategoryControllers>(
-                    init: CategoryControllers(),
                     builder: (controller) {
                       if (categoryControllers.isLoading.value) {
                         return const LoadingWidget();
@@ -179,7 +178,7 @@ class _ProductCategoryListScreenState extends State<ProductCategoryListScreen> {
                                     shrinkWrap: true,
                                     physics: const NeverScrollableScrollPhysics(),
                                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2, mainAxisSpacing: 15, crossAxisSpacing: 15, childAspectRatio: 2 / 2.6),
+                                        crossAxisCount: 2, mainAxisSpacing: 15, crossAxisSpacing: 15, childAspectRatio: 2 / 3),
                                     itemBuilder: (context, index) {
                                       return GestureDetector(
                                           onTap: () async {
@@ -204,16 +203,22 @@ class _ProductCategoryListScreenState extends State<ProductCategoryListScreen> {
                                               child: Padding(
                                                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
                                                   child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                                                    CachedNetworkImage(
-                                                        imageUrl: categoryControllers.productList[index].image,
-                                                        errorWidget: (context, url, error) => Image.asset(AppImages.errorImages, fit: BoxFit.cover),
-                                                        placeholder: (context, url) => const LoadingWidget(),
-                                                        imageBuilder: (context, imageProvider) => Container(
-                                                            height: 140,
-                                                            decoration: BoxDecoration(
-                                                                color: AppColor.whiteColor,
-                                                                borderRadius: BorderRadius.circular(5),
-                                                                image: DecorationImage(image: imageProvider, fit: BoxFit.fill)))),
+                                                    AspectRatio(
+                                                      aspectRatio: 1,
+                                                      child: ClipRRect(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        child: CachedNetworkImage(
+                                                            imageUrl: categoryControllers.productList[index].image,
+                                                            errorWidget: (context, url, error) => Image.asset(AppImages.errorImages, fit: BoxFit.cover),
+                                                            placeholder: (context, url) => const LoadingWidget(),
+                                                            imageBuilder: (context, imageProvider) => Container(
+                                                                height: 140,
+                                                                decoration: BoxDecoration(
+                                                                    color: AppColor.whiteColor,
+                                                                    borderRadius: BorderRadius.circular(5),
+                                                                    image: DecorationImage(image: imageProvider, fit: BoxFit.contain)))),
+                                                      ),
+                                                    ),
                                                     const SizedBox(height: 10),
                                                     TextWidget(
                                                         text: categoryControllers.productList[index].brandName.toString(),
@@ -230,6 +235,7 @@ class _ProductCategoryListScreenState extends State<ProductCategoryListScreen> {
                                                         textAlign: TextAlign.center,
                                                         maxLines: 3,
                                                         fontSize: 14,
+                                                        overflow: TextOverflow.ellipsis,
                                                         fontWeight: FontWeight.w500)
                                                   ]))));
                                     })

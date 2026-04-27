@@ -2,26 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shopperz/app/modules/auth/views/sign_in.dart';
-import 'package:shopperz/app/modules/auth/views/sign_up.dart';
-import 'package:shopperz/app/modules/language/views/language_change_screen.dart';
+import 'package:shopperz/app/modules/language/views/about_us.dart';
+import 'package:shopperz/app/modules/navbar/controller/navbar_controller.dart';
+import 'package:shopperz/app/modules/navbar/views/navbar_view.dart';
 import 'package:shopperz/app/modules/profile/views/pages_screen.dart';
-import 'package:shopperz/app/modules/profile/widgets/address_screen.dart';
 import 'package:shopperz/app/modules/profile/widgets/change_password.dart';
 import 'package:shopperz/app/modules/profile/widgets/delete_account_widget.dart';
-import 'package:shopperz/app/modules/profile/widgets/edit_profile.dart';
+import 'package:shopperz/app/modules/profile/widgets/ledger.dart';
 import 'package:shopperz/app/modules/profile/widgets/menu_widget.dart';
+import 'package:shopperz/app/modules/profile/widgets/outstanding.dart';
 import 'package:shopperz/utils/api_list.dart';
 import 'package:shopperz/utils/images.dart';
 import 'package:shopperz/utils/svg_icon.dart';
 import 'package:shopperz/widgets/devider.dart';
-import 'package:shopperz/widgets/primary_button.dart';
 import 'package:shopperz/widgets/textwidget.dart';
 
 import '../../../../config/theme/app_color.dart';
-import '../../category/views/sqlite_helper.dart';
 import '../../order/views/order_history_screen.dart';
-import '../../order/views/return_orders_screen.dart';
+import '../../order/views/itemHistory.dart';
 import 'my_account_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -62,6 +63,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.transparent,
       child: AccountDeleteWidget(),
     ));
+  }
+
+  Future<dynamic> logoutDialog(){
+    return Get.defaultDialog(
+      title: "Logout",
+      middleText: "Are you sure you want to logout?",
+      textConfirm: "Yes",
+      textCancel: "No",
+      onConfirm: () async {
+        // 1. Clear GetStorage (login state, email, company, etc.)
+        final box = GetStorage();
+        await box.erase();
+
+        AppConstants.customerId = "";
+        AppConstants.userName = "";
+        AppConstants.emailId = "";
+
+        // 2. Clear SharedPreferences (customer data, tokens)
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+
+        // 3. Delete local DB tables (keep this, it's useful)
+
+        // 4. Delete all GetX controllers from memory
+        Get.deleteAll(force: true);
+
+        // 5. Navigate to login/home screen
+        Get.offAll(() => const NavBarView());
+        final navController = Get.put(NavbarController());
+        navController.selectPage(0);
+      },
+    
+    );
   }
 
   @override
@@ -225,33 +259,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     height: 24.h,
                                   ),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
+                                      
                                       InkWell(
                                         onTap: () {
-                                          Get.to(() => const SignUpScreen());
-                                        },
-                                        borderRadius: BorderRadius.circular(24.r),
-                                        child: Ink(
-                                          height: 48.h,
-                                          width: 156.w,
-                                          decoration: BoxDecoration(
-                                            color: AppColor.primaryColor1,
-                                            borderRadius: BorderRadius.circular(24.r),
-                                          ),
-                                          child: Center(
-                                            child: TextWidget(
-                                              text: 'Sign Up'.tr,
-                                              color: AppColor.primaryColor,
-                                              fontSize: 16.sp,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          Get.to(() => const SignInScreen());
+                                          Get.to(() => SignInScreen()
+                                          );
                                         },
                                         borderRadius: BorderRadius.circular(24.r),
                                         child: Ink(
@@ -298,18 +312,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               const DeviderWidget(),
                               MenuWidget(
-                                text: 'RETURN_ORDERS'.tr,
+                                text: 'Item History'.tr,
                                 icon: SvgIcon.menuRefresh,
                                 onTap: () {
-                                  Get.to(() => const ReturnOrdersScreen());
+                                  Get.to(() => const ItemHistoryScreen());
                                 },
                               ),
                               const DeviderWidget(),
                               MenuWidget(
-                                text: 'EDIT_PROFILE'.tr,
-                                icon: SvgIcon.menuEdit,
+                                text: 'Outstanding',
+                                icon: SvgIcon.outstanding,
                                 onTap: () {
-                                  Get.to(() => const EditProfileScreen());
+                                  Get.to(() =>const Outstanding()
+                                  );
+                                },
+                              ),
+                              const DeviderWidget(),
+                              MenuWidget(
+                                text: 'Ledger'.tr,
+                                icon: SvgIcon.notes,
+                                onTap: () {
+                                  Get.to(() => const LedgerScreen()
+                                  );
                                 },
                               ),
                               const DeviderWidget(),
@@ -321,22 +345,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 },
                               ),
                               const DeviderWidget(),
-                              MenuWidget(
-                                text: 'ADDRESSES'.tr,
-                                icon: SvgIcon.menuLocation,
-                                onTap: () {
-                                  Get.to(() => const AddressScreen());
-                                },
-                              ),
-                              const DeviderWidget(),
+                              
                             ],
                           )
                         : const SizedBox(),
                     MenuWidget(
-                      text: 'CHANGE_LANGUAGE'.tr,
-                      icon: SvgIcon.language,
+                      text:  'About Us',
+                      icon: SvgIcon.group,
                       onTap: () {
-                        Get.to(() => const ChangeLanguageView());
+                        Get.to(() => const AboutUs());
                       },
                     ),
                     const DeviderWidget(),
@@ -361,24 +378,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     AppConstants.customerId.isNotEmpty
                         ? InkWell(
                             onTap: () async {
-                              // await auth.logout();
-                              ContactDatabaseHelper contactDatabaseHelper = ContactDatabaseHelper();
-                              contactDatabaseHelper.deleteAllTable();
+                              logoutDialog();
                             },
                             child: MenuWidget(text: 'LOGOUT'.tr, icon: SvgIcon.menuLogout))
                         : SizedBox(),
                     SizedBox(
                       height: 20.h,
                     ),
-                    if (AppConstants.customerId.isNotEmpty)
-                      PrimaryButton(
-                          onTap: () {
-                            openDeleteAccountDialog();
-                          },
-                          text: 'DELETE_ACCOUNT'.tr),
-                    SizedBox(
-                      height: 40.h,
-                    ),
+                    
                   ],
                 ),
               ),

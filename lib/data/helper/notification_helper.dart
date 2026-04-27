@@ -58,7 +58,7 @@ class NotificationHelper {
     );
 
     await flutterLocalNotificationsPlugin.initialize(
-       settings:initializationsSettings,
+       initializationsSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         try {
           final String? payload = response.payload;
@@ -217,10 +217,10 @@ class NotificationHelper {
         NotificationDetails(android: androidPlatformChannelSpecifics);
     
     await fln.show(
-      id:Random.secure().nextInt(10000),
-      title:title,
-      body:body,
-      notificationDetails:platformChannelSpecifics,
+      Random.secure().nextInt(10000),
+      title,
+      body,
+      platformChannelSpecifics,
       payload: payload,
     );
   }
@@ -263,10 +263,10 @@ class NotificationHelper {
           NotificationDetails(android: androidPlatformChannelSpecifics);
       
       await fln.show(
-        id:Random.secure().nextInt(10000),
-        title:title,
-        body:body,
-        notificationDetails:platformChannelSpecifics ,        
+        Random.secure().nextInt(10000),
+        title,
+        body,
+        platformChannelSpecifics ,        
         payload: payload,
       );
     } catch (e) {
@@ -318,7 +318,7 @@ Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
       FlutterLocalNotificationsPlugin();
   
   await flutterLocalNotificationsPlugin.initialize(
-    settings: initializationsSettings,
+    initializationsSettings,
   );
   
   await NotificationHelper.showNotification(

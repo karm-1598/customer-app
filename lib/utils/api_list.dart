@@ -3,8 +3,37 @@ class ApiList {
   static const baseUrl = "http://tools.lca.solutions";
   static const login = "/api/login.aspx?";
   // static const login = "$baseUrl/api/login.aspx?emailId="+ emailid + "&password=" + password + "&DeviceID=" + DeviceID + "&DeviceType=" + DeviceType + "";
-  static const promotionCategoryBanner =
-      "/api/CategoryBanner.aspx";
+  
+  // <--------guest apis-------->
+  static const insertCotaionByGuest="/api/addCotationByGU.aspx";//used to insert cotaion by user directly
+
+  // <---------profile screen apis-------->
+  // my account api
+  static const myAccount= "/api/myAccount.aspx?id=";
+  static const designation="/api/Designation.aspx";
+  static const saveuserData="/api/updateMyAccount.aspx"; //this is partial update api
+  static const updateUserData="/api/UserProfile.aspx";// this is full update api
+  static const changePassword="/api/changePassword.aspx";
+  static const orderHistory='/api/getOrderHistory.aspx?';//this is for getting old order history
+  static const reOrder='/api/reOrder.aspx'; //this api is used for reordering
+  static const orderItemHistory='/api/getOrderItemHistory.aspx?';//this is for getting item history
+  static const addItemWishlist='/api/addItemInWishlist.aspx';//to add product in wishlist
+  static const getWishlistProducts="/api/wishlist.aspx";// to get all wishlist products
+  static const plusQtyItem='/api/plusQuantityFromHistory.aspx';//add qty in itemhistory screen
+  static const minusQtyItem='/api/minusQuantityFromHistory.aspx';//minus qty in item history screen
+  static const accountNumber='/api/getLedger.aspx';//get account number for ledger screen
+  static const outstanding='/api/outstanding.aspx';//for geting details of outstanding
+
+  static const getaddressByemail='/api/getAddress.aspx';
+  static const addItemQtyWishlist='/api/plusQuantityInWishlist.aspx';
+  static const minusItemQtyWishlist='/api/minusQuantityInWishlist.aspx';
+  static const deleteQtyWishlist='/api/deleteItemFromWishlist.aspx';
+  static const updateQtyWishlist='/api/updateWishlistItem.aspx';
+  static const addQuatation='/api/addCotationByGuestUser.aspx';
+  static const clearWhishlist='/api/deleteAllItemFromWishlist.aspx';
+  static const insertWishlist='/api/addItemInWishlist.aspx';
+
+  static const promotionCategoryBanner ="/api/CategoryBanner.aspx";
   static const slider = "/api/banner.aspx";
   static const associateBrands = "/api/manufacturer.aspx";
   static const categorySelectById = "/api/categorySelectById.aspx?";
@@ -46,7 +75,7 @@ class ApiList {
       "$baseUrl/api/frontend/promotion?status=5&type=10&order_type=asc";
   static const productSection = "$baseUrl/api/frontend/product-section";
   // static const slider = "$baseUrl/api/frontend/slider";
-  static const setting = "$baseUrl/api/frontend/setting";
+  // static const setting = "$baseUrl/api/frontend/setting";
   // static const countryCode = "";
   static const countryCode = "$baseUrl/api/frontend/country-code";
   static const language = "$baseUrl/api/frontend/language";
@@ -75,7 +104,6 @@ class ApiList {
   static const profileUpdate = "$baseUrl/api/profile";
   static const pages = "$baseUrl/api/frontend/page";
   static const changeImage = "$baseUrl/api/profile/change-image";
-  static const changePassword = "$baseUrl/api/profile/change-password";
   static const totalOrdersCount = "$baseUrl/api/frontend/overview/total-orders";
   static const totalCompleteOrdersCount =
       "$baseUrl/api/frontend/overview/total-complete-orders";
@@ -83,7 +111,6 @@ class ApiList {
       "$baseUrl/api/frontend/overview/total-return-orders";
   static const totalWalletBalanceCount =
       "$baseUrl/api/frontend/overview/wallet-balance";
-  static const orderHistory = "$baseUrl/api/frontend/order";
   static const orderDetails = "$baseUrl/api/frontend/order/show/";
   static const orderCancel = "$baseUrl/api/frontend/order/change-status/";
   static const submitReview = "$baseUrl/api/frontend/product-review";

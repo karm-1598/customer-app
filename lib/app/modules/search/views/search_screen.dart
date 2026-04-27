@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:shopperz/app/modules/auth/views/sign_in.dart';
 import 'package:shopperz/app/modules/category/views/category_wise_product_screen.dart';
 import 'package:shopperz/app/modules/search/controller/search_controller.dart';
-import 'package:shopperz/app/modules/wishlist/controller/wishlist_controller.dart';
 import 'package:shopperz/main.dart';
 import 'package:shopperz/utils/images.dart';
 import 'package:shopperz/utils/svg_icon.dart';
@@ -27,7 +26,6 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final searchController = Get.put(ProductSearchController());
-    final wishlistController = Get.find<WishlistController>();
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -143,40 +141,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                             .productList[index]),
                                   );
                                 },
-                                wishlist: wishlistController.favList.contains(
-                                            searchController
-                                                .productList[index].id!) ||
-                                        searchController
-                                                .productList[index].wishlist ==
-                                            true
-                                    ? true
-                                    : false,
+                               
                                 favTap: () async {
-                                  if (box.read('isLogedIn') != false) {
-                                    if (searchController
-                                            .productList[index].wishlist ==
-                                        true) {
-                                      await wishlistController
-                                          .toggleFavoriteFalse(searchController
-                                              .productList[index].id!);
-
-                                      wishlistController.showFavorite(
-                                          searchController
-                                              .productList[index].id!);
-                                    }
-                                    if (searchController
-                                            .productList[index].wishlist ==
-                                        false) {
-                                      await wishlistController
-                                          .toggleFavoriteTrue(searchController
-                                              .productList[index].id!);
-
-                                      wishlistController.showFavorite(
-                                          searchController
-                                              .productList[index].id!);
-                                    }
-                                  } else {
-                                    Get.to(() => const SignInScreen());
+                                  if (box.read('isLogedIn') == false) {
+                                    Get.to(() => const SignInScreen()
+                                    );
                                   }
                                 },
                                 productImage:

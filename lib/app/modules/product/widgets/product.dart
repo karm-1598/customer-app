@@ -264,15 +264,18 @@ class ProductWidget2 extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 8),
                 child: Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Stack(children: [
-                    CachedNetworkImage(
-                        imageUrl: productImage.toString(),
-                        imageBuilder: (context, imageProvider) => Container(
-                            height: 140,
-                            width: 140,
-                            decoration: BoxDecoration(
-                                color: AppColor.whiteColor,
-                                borderRadius: BorderRadius.circular(8),
-                                image: DecorationImage(image: imageProvider, fit: BoxFit.fill))))
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: CachedNetworkImage(
+                          imageUrl: productImage.toString(),
+                          imageBuilder: (context, imageProvider) => Container(
+                              height: 140,
+                              width: 140,
+                              decoration: BoxDecoration(
+                                  color: AppColor.whiteColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(image: imageProvider, fit: BoxFit.fill)))),
+                    )
                   ]),
                   const SizedBox(height: 10),
                   TextWidget(
@@ -291,7 +294,7 @@ class ProductWidget2 extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.fade),
                   const SizedBox(height: 10),
-                  TextWidget(text: price ?? '0', color: AppColor.textColor, fontSize: 20, fontWeight: FontWeight.w800)
+                  // TextWidget(text: price ?? '0', color: AppColor.textColor, fontSize: 20, fontWeight: FontWeight.w800)
                 ]))));
   }
 }

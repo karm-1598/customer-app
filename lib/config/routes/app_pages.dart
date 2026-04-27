@@ -3,7 +3,7 @@ import 'package:shopperz/app/modules/category/bindings/category_bindings.dart';
 
 import 'package:shopperz/app/modules/home/bindings/home_bindings.dart';
 import 'package:shopperz/app/modules/home/views/home_screen.dart';
-import 'package:shopperz/app/modules/language/views/language_change_screen.dart';
+import 'package:shopperz/app/modules/language/views/about_us.dart';
 import 'package:shopperz/app/modules/navbar/bindings/navbar_binding.dart';
 import 'package:shopperz/app/modules/navbar/views/navbar_view.dart';
 import 'package:shopperz/app/modules/splash/binding/splash_binding.dart';
@@ -38,7 +38,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.language,
-      page: () => const ChangeLanguageView(),
+      page: () => const AboutUs(),
       binding: LanguageBindings(),
     )
   ];

@@ -23,13 +23,13 @@ class AppBarWidget extends StatelessWidget {
       backgroundColor: AppColor.primaryBackgroundColor,
       elevation: 0,
       toolbarHeight: 48.h,
-      leadingWidth: 130.w,
+      leadingWidth: 100.w,
       leading: Padding(
         padding: EdgeInsets.only(left: 16.w, right: 16.w),
         child: SvgPicture.asset(
           SvgIcon.logo,
-          height: 20.h,
-          width: 73.w,
+          height: 16.h,
+          width: 65.w,
         ),
       ),
       title: Text(

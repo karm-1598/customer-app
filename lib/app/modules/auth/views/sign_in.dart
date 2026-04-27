@@ -2,24 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shopperz/app/apiServices/common_widget.dart';
 import 'package:shopperz/app/controller/sign_in_controller.dart';
-import 'package:shopperz/main.dart';
 import 'package:shopperz/widgets/appbar3.dart';
 
 import '../../../../config/theme/app_color.dart';
-import '../../../../utils/svg_icon.dart';
 import '../../../../utils/validation_rules.dart';
 import '../../../../widgets/custom_form_field.dart';
 import '../../../../widgets/custom_text.dart';
 import '../../../../widgets/form_field_title.dart';
-import '../../../../widgets/loader/loader.dart';
 import '../../../../widgets/primary_button.dart';
-import '../controller/auth_controler.dart';
-import 'forgot_password.dart';
-import 'sign_up.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -171,34 +164,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                 controller: passController,
                                 validator: (password) => ValidationRules().password(password),
                               ),
-                              SizedBox(height: 12.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        mark = !mark;
-                                      });
-                                    },
-                                    child: SvgPicture.asset(mark == true ? SvgIcon.checkdBox : SvgIcon.checkBox, height: 16.h, width: 16.w),
-                                  ),
-                                  SizedBox(width: 8.w),
-                                  CustomText(text: "Remember me".tr, size: 14.sp, weight: FontWeight.w400),
-                                  const Spacer(),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Get.to(() => const ForgotPasswordScreen());
-                                    },
-                                    child: CustomText(
-                                      text: "Forgot Password".tr,
-                                      color: AppColor.primaryColor,
-                                      weight: FontWeight.w600,
-                                      size: 14.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              
                               SizedBox(height: 24.h),
                               PrimaryButton(
                                   text: "Sign In".tr,
@@ -230,19 +196,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                     }
                                   }),
                               SizedBox(height: 20.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  CustomText(text: "Don't have an account?".tr, color: const Color(0xFF6E7191), size: 16.sp, weight: FontWeight.w500),
-                                  SizedBox(width: 4.w),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Get.to(() => const SignUpScreen());
-                                    },
-                                    child: CustomText(text: "Sign Up".tr, color: AppColor.primaryColor, size: 16.sp, weight: FontWeight.w700),
-                                  ),
-                                ],
-                              )
+                              
                             ],
                           ),
                         ),
